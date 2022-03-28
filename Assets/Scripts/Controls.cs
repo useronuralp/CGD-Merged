@@ -9,8 +9,8 @@ namespace Game
     public class Controls : MonoBehaviourPunCallbacks, IOnEventCallback
     {
         private Rigidbody          m_RigidBody;
-        private float              m_MovementSpeed = 5.0f;
-        private float              m_JumpForce = 8.0f;
+        private float              m_MovementSpeed = 4.0f;
+        private float              m_JumpForce = 7.0f;
         private bool               m_IsInputEnabled;
         private Vector3            m_MovementDirection;
         private UnityEngine.Camera m_TpsCamera;
@@ -39,6 +39,7 @@ namespace Game
         }
         void Update()
         {
+            Debug.Log(IsGrounded());
             //Return if the instance is not local. We don't want to control other people's characters.
             if (photonView.IsMine == false)
             {
@@ -48,7 +49,6 @@ namespace Game
             {
                 if (Input.GetKeyDown(KeyCode.Space) && IsGrounded())
                 {
-                    Debug.Log("Jumped");
                     m_RigidBody.velocity = Vector3.up * m_JumpForce;
                 }
                 if(Input.GetMouseButtonDown(0))
@@ -85,7 +85,7 @@ namespace Game
         public bool IsGrounded()
         {
             //m_RigidBody.velocity = new Vector3(0, 0, 0);
-            return Physics.Raycast(transform.position, -Vector3.up, m_DistToGround + 0.0f);
+            return Physics.Raycast(transform.position, -Vector3.up, m_DistToGround + 0.1f);
         }
 
         private void FixedUpdate()
