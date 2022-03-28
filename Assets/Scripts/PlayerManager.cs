@@ -67,7 +67,7 @@ namespace Game
             transform.tag = "Bulldog";
             if(PhotonNetwork.IsMasterClient)
                 Utility.RaiseEvent(false, EventType.InitialSetupComplete, ReceiverGroup.All, EventCaching.DoNotCache, true); // PlaygroundManager catches this.
-            m_Animator.SetTrigger("angry");
+            //m_Animator.SetTrigger("angry");
         }
         [PunRPC]
         public void BecomeFirstRunner() 
@@ -80,7 +80,7 @@ namespace Game
         [PunRPC]
         public void BecomeBulldogByEndOfRound()
         {
-            m_Animator.SetTrigger("angry");
+            //m_Animator.SetTrigger("angry");
             m_IsBulldog = true;
             transform.tag = "Bulldog";
         }
@@ -95,7 +95,7 @@ namespace Game
                     Utility.RaiseEvent(false, EventType.BulldogsWin, ReceiverGroup.All, EventCaching.DoNotCache, true); // PlaygroundManager catches this.
                 photonView.RPC("SyncBulldogAndRunnerCounts", RpcTarget.All, new int[] { s_BulldogCount, s_RunnerCount });
             }
-            m_Animator.SetTrigger("angry");
+            //m_Animator.SetTrigger("angry");
             m_IsBulldog = true;
             transform.tag = "Bulldog";
         }

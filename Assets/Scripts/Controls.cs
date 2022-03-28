@@ -85,7 +85,7 @@ namespace Game
         public bool IsGrounded()
         {
             //m_RigidBody.velocity = new Vector3(0, 0, 0);
-            return Physics.Raycast(transform.position, -Vector3.up, m_DistToGround + 0.1f);
+            return Physics.Raycast(transform.position, -Vector3.up, m_DistToGround + 0.0f);
         }
 
         private void FixedUpdate()
