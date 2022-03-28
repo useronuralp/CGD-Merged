@@ -29,6 +29,8 @@ namespace Game
         private bool                m_HasRoundStarted = false;
 
         private bool                m_HasCrossedTheFinishLine = false;
+
+        private Animator            m_Animator;
         public void Respawn()
         {
             PlacePlayer(false);
@@ -39,6 +41,7 @@ namespace Game
         }
         private void Awake()
         {
+            m_Animator = GetComponent<Animator>();
             m_EvenSpawnPoints = new Dictionary<int, int>() { {0,1}, {2,2}, {4,3}, {6,4}, {8,5}, {10,6}, {12,7}, {14,8}, {16,9}, {18,10} };
             m_OddSpawnPoints  = new Dictionary<int, int>() { {1,1}, {3,2}, {5,3}, {7,4}, {9,5}, {11,6}, {13,7}, {15,8}, {17,9}, {19,10} };
             m_Rigidbody = GetComponent<Rigidbody>();
@@ -60,11 +63,11 @@ namespace Game
         [PunRPC]
         public void BecomeFirstBulldog()
         {
-            GetComponent<MeshRenderer>().material.color = new Color(1.0f, 0.0f, 0.0f, 1.0f);
             m_IsBulldog = true;
             transform.tag = "Bulldog";
             if(PhotonNetwork.IsMasterClient)
                 Utility.RaiseEvent(false, EventType.InitialSetupComplete, ReceiverGroup.All, EventCaching.DoNotCache, true); // PlaygroundManager catches this.
+            m_Animator.SetTrigger("angry");
         }
         [PunRPC]
         public void BecomeFirstRunner() 
@@ -77,7 +80,7 @@ namespace Game
         [PunRPC]
         public void BecomeBulldogByEndOfRound()
         {
-            GetComponent<MeshRenderer>().material.color = new Color(1.0f, 0.0f, 0.0f, 1.0f);
+            m_Animator.SetTrigger("angry");
             m_IsBulldog = true;
             transform.tag = "Bulldog";
         }
@@ -92,7 +95,7 @@ namespace Game
                     Utility.RaiseEvent(false, EventType.BulldogsWin, ReceiverGroup.All, EventCaching.DoNotCache, true); // PlaygroundManager catches this.
                 photonView.RPC("SyncBulldogAndRunnerCounts", RpcTarget.All, new int[] { s_BulldogCount, s_RunnerCount });
             }
-            GetComponent<MeshRenderer>().material.color = new Color(1.0f, 0.0f, 0.0f, 1.0f);
+            m_Animator.SetTrigger("angry");
             m_IsBulldog = true;
             transform.tag = "Bulldog";
         }

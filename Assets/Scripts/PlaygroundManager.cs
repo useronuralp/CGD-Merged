@@ -111,7 +111,6 @@ namespace Game
                 GameObject.Find("UI").transform.Find("ReturnToHub").gameObject.SetActive(false);
             }
         }
-
         private void Update()
         {
             if(Input.GetKeyDown(KeyCode.LeftControl))

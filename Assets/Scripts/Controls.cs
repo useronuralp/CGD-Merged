@@ -22,9 +22,12 @@ namespace Game
         private float m_BabyJumpMultiplier = 3.0f;
         private bool m_IsDashing = false;
         private float m_DistToGround;
+
+        private Animator m_Animator;
         
         private void Awake()
         {
+            m_Animator = GetComponent<Animator>();
             m_DistToGround = transform.GetComponent<Collider>().bounds.extents.y;
             m_TpsCamera = UnityEngine.Camera.main;
             m_RigidBody = GetComponent<Rigidbody>();
@@ -45,6 +48,7 @@ namespace Game
             {
                 if (Input.GetKeyDown(KeyCode.Space) && IsGrounded())
                 {
+                    Debug.Log("Jumped");
                     m_RigidBody.velocity = Vector3.up * m_JumpForce;
                 }
                 if(Input.GetMouseButtonDown(0))
@@ -61,6 +65,22 @@ namespace Game
             {
                 m_RigidBody.velocity += Vector3.up * Physics.gravity.y * (m_BabyJumpMultiplier - 1) * Time.deltaTime;
             }
+
+            m_Animator.SetBool("isGrounded", IsGrounded());
+            if(m_RigidBody.velocity.y < 0)
+            {
+                m_Animator.SetBool("isAscending", false);
+            }
+            else if(m_RigidBody.velocity.y > 0)
+            {
+                m_Animator.SetBool("isAscending", true);
+            }
+
+
+            if(m_IsInputEnabled)
+                m_Animator.SetFloat("Blend", Mathf.Max(Mathf.Abs(Input.GetAxis("Horizontal")), Mathf.Abs(Input.GetAxis("Vertical"))));
+            else
+                m_Animator.SetFloat("Blend", 0);
         }
         public bool IsGrounded()
         {
@@ -78,6 +98,7 @@ namespace Game
             float horizontal = Input.GetAxisRaw("Horizontal");
             float vertical = Input.GetAxisRaw("Vertical");
 
+            
             //Determine the direction of the movement, we put both the camera orientation and the player input into the calculation here.
             m_MovementDirection = m_TpsCamera.transform.forward * vertical + m_TpsCamera.transform.right * horizontal;
             m_MovementDirection.Normalize();
