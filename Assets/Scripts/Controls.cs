@@ -85,7 +85,8 @@ namespace Game
         public bool IsGrounded()
         {
             //m_RigidBody.velocity = new Vector3(0, 0, 0);
-            return Physics.Raycast(transform.position, -Vector3.up, m_DistToGround + 0.1f);
+            Debug.DrawRay(new Vector3(transform.position.x, transform.position.y + m_DistToGround, transform.position.z), -Vector3.up, Color.yellow, m_DistToGround + 0.3f);
+            return Physics.Raycast(new Vector3(transform.position.x, transform.position.y + m_DistToGround, transform.position.z), -Vector3.up, m_DistToGround + 0.3f);
         }
 
         private void FixedUpdate()
@@ -111,15 +112,21 @@ namespace Game
                     Vector3 turnRotationVector = new Vector3(m_MovementDirection.x, 0, m_MovementDirection.z);
                     TurnCharacterTowards(turnRotationVector, 700.0f);
 
-                    if(m_IsDashing)
+                    if (m_IsDashing)
+                    {
                         m_RigidBody.MovePosition(transform.position + m_DashSpeed * 1.7f * transform.forward * Time.deltaTime);
+                    }
                     else
+                    {
                         m_RigidBody.MovePosition(transform.position + m_MovementSpeed * 1.7f * transform.forward * Time.deltaTime);
+                    }
                 }
                 else
                 {
                     if(m_IsDashing)
+                    {
                         m_RigidBody.MovePosition(transform.position + m_DashSpeed * 1.7f * transform.forward * Time.deltaTime);
+                    }
                 }
             }
         }
