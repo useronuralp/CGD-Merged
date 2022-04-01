@@ -8,6 +8,7 @@ TagManager:
   - Bulldog
   - Runner
   - FinishLine
+  - PlayerEyes
   layers:
   - Default
   - TransparentFX
@@ -44,4 +45,19 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Background UI
+    uniqueID: 71146933
+    locked: 0
+  - name: UI Particles
+    uniqueID: 2485856603
+    locked: 0
+  - name: Middle UI
+    uniqueID: 2835433239
+    locked: 0
+  - name: Middle Foreground UI
+    uniqueID: 3723769899
+    locked: 0
+  - name: Foreground UI
+    uniqueID: 1571912041
     locked: 0
