@@ -10,6 +10,7 @@ namespace Game
 {
     public class LobbyManager : MonoBehaviourPunCallbacks
     {
+        //Test
         [SerializeField]
         private GameObject LobbyPanel;
         [SerializeField]
