@@ -33,18 +33,18 @@ namespace Game
             if (m_PlayerPrefab == null)
             {
 
-                Debug.LogError("<Color=Red><b>Missing</b></Color> playerPrefab Reference. Please set it up in GameObject 'Game Manager'", this);
+                //Debug.LogError("<Color=Red><b>Missing</b></Color> playerPrefab Reference. Please set it up in GameObject 'Game Manager'", this);
             }
             else
             {
                 if (PlayerManager.s_LocalPlayerInstance == null) 
                 {
-                    Debug.LogFormat("We are Instantiating LocalPlayer from {0}", SceneManagerHelper.ActiveSceneName);
+                    //Debug.LogFormat("We are Instantiating LocalPlayer from {0}", SceneManagerHelper.ActiveSceneName);
                     PhotonNetwork.Instantiate(m_PlayerPrefab.name, new Vector3(0f, 5f, 0f), Quaternion.identity, 0);
                 }
                 else
                 {
-                    Debug.LogFormat("Ignoring scene load for {0}", SceneManagerHelper.ActiveSceneName);
+                    //Debug.LogFormat("Ignoring scene load for {0}", SceneManagerHelper.ActiveSceneName);
                 }
             }
             m_StartGameButton = m_UI.transform.Find("Canvas").Find("StartGameButton").gameObject;
@@ -73,22 +73,21 @@ namespace Game
         public void OnStartGameButtonPressed()
         {
             photonView.RPC("FadeOut", RpcTarget.All);
-            //PhotonNetwork.LoadLevel(3);
         }
         public override void OnPlayerEnteredRoom(Player other)
         {
-            Debug.LogFormat("OnPlayerEnteredRoom() {0}", other.NickName); // not seen if you're the player connecting
+            //Debug.LogFormat("OnPlayerEnteredRoom() {0}", other.NickName); // not seen if you're the player connecting
 
         }
         public override void OnPlayerLeftRoom(Player other)
         {
-            Debug.LogFormat("OnPlayerLeftRoom() {0}", other.NickName); // seen when other disconnects
+            //Debug.LogFormat("OnPlayerLeftRoom() {0}", other.NickName); // seen when other disconnects
         }
         public override void OnLeftRoom()
         {
-            PhotonNetwork.LoadLevel(1);
+            SceneManager.LoadScene(1);
         }
-        public void LeaveRoom()
+        public void OnLeaveRoomButtonPressed()
         {
             PhotonNetwork.LeaveRoom();
         }

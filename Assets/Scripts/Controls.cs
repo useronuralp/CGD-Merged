@@ -14,6 +14,7 @@ namespace Game
         private bool               m_IsInputEnabled;
         private Vector3            m_MovementDirection;
         private UnityEngine.Camera m_TpsCamera;
+        private float              m_TurnSpeed = 2000;
 
         private float m_DashTime = 0.05f;
         private float m_DashSpeed = 20.0f;
@@ -36,6 +37,11 @@ namespace Game
             {
                 m_IsInputEnabled = false;
             }
+        }
+        private void Start()
+        {
+            EventManager.Get().OnEnableInput += OnEnableInput;
+            EventManager.Get().OnDisableInput += OnDisableInput;
         }
         void Update()
         {
@@ -86,7 +92,7 @@ namespace Game
         {
             //m_RigidBody.velocity = new Vector3(0, 0, 0);
             Debug.DrawRay(new Vector3(transform.position.x, transform.position.y + m_DistToGround, transform.position.z), -Vector3.up, Color.yellow, m_DistToGround + 0.3f);
-            return Physics.Raycast(new Vector3(transform.position.x, transform.position.y + m_DistToGround, transform.position.z), -Vector3.up, m_DistToGround + 0.3f);
+            return Physics.Raycast(new Vector3(transform.position.x, transform.position.y + m_DistToGround, transform.position.z), -Vector3.up, m_DistToGround + 0.3f, ~LayerMask.GetMask("Ragdoll"));
         }
 
         private void FixedUpdate()
@@ -110,7 +116,7 @@ namespace Game
                 if (m_MovementDirection != Vector3.zero)
                 {
                     Vector3 turnRotationVector = new Vector3(m_MovementDirection.x, 0, m_MovementDirection.z);
-                    TurnCharacterTowards(turnRotationVector, 700.0f);
+                    TurnCharacterTowards(turnRotationVector, m_TurnSpeed);
 
                     if (m_IsDashing)
                     {
@@ -158,6 +164,14 @@ namespace Game
                 yield return null;
             }
             m_IsDashing = false;
+        }
+        private void OnDisableInput()
+        {
+            m_IsInputEnabled = false;
+        }
+        private void OnEnableInput()
+        {
+            m_IsInputEnabled = true;
         }
     }
 }

@@ -29,17 +29,17 @@ namespace Game
         //------------- Callbacks------------------------------
         public override void OnConnectedToMaster()
         {
-            Debug.Log("Connected to MASTER server");
+            //Debug.Log("Connected to MASTER server");
             SceneManager.LoadScene(1); //This loading needs no synchronization so I am not using PhotonNetwork.LoadLevel() here.
             PhotonNetwork.JoinLobby();
         }
         public override void OnJoinedLobby()
         {
-            Debug.Log("Joined a lobby. OnJoinedLobby()");
+            //Debug.Log("Joined a lobby. OnJoinedLobby()");
         }
         public override void OnLeftLobby()
         {
-            Debug.Log("Left a lobby. OnLeftLobby()");
+            //Debug.Log("Left a lobby. OnLeftLobby()");
         }
     }
 }
