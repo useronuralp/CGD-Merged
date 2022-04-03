@@ -116,7 +116,7 @@ namespace Game
             if(Input.GetKeyDown(KeyCode.LeftControl))
             {
                 Cursor.visible = !Cursor.visible;
-                Cursor.lockState = Cursor.lockState == CursorLockMode.Confined ? CursorLockMode.Locked : CursorLockMode.Confined;
+                Cursor.lockState = Cursor.lockState == CursorLockMode.Confined ? CursorLockMode.None : CursorLockMode.Confined;
             }
             //Debug.LogError("Instantiated Players:" + m_NumberOfInstantitatedPlayers);
             // Master - Client sets up the game here.

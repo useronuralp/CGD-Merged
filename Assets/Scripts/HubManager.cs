@@ -55,7 +55,7 @@ namespace Game
             if (Input.GetKeyDown(KeyCode.LeftControl))
             {
                 Cursor.visible = !Cursor.visible;
-                Cursor.lockState = Cursor.lockState == CursorLockMode.Locked ? CursorLockMode.Confined: CursorLockMode.Locked;
+                Cursor.lockState = Cursor.lockState == CursorLockMode.Locked ? CursorLockMode.None: CursorLockMode.Locked;
             }
             if (PhotonNetwork.CurrentRoom.PlayerCount >= m_MinimumPlayerCount)
             {
@@ -76,8 +76,7 @@ namespace Game
         }
         public override void OnPlayerEnteredRoom(Player other)
         {
-            //Debug.LogFormat("OnPlayerEnteredRoom() {0}", other.NickName); // not seen if you're the player connecting
-
+            Debug.LogFormat("OnPlayerEnteredRoom() {0}", other.NickName); // not seen if you're the player connecting
         }
         public override void OnPlayerLeftRoom(Player other)
         {

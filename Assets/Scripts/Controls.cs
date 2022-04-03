@@ -45,7 +45,7 @@ namespace Game
         }
         void Update()
         {
-            Debug.Log(IsGrounded());
+            //Debug.Log(IsGrounded());
             //Return if the instance is not local. We don't want to control other people's characters.
             if (photonView.IsMine == false)
             {

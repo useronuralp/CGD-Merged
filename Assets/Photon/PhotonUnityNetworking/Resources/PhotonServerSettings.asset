@@ -77,6 +77,9 @@ MonoBehaviour:
   - Init
   - ResetCamera
   - ReleaseCamera
+  - Bounce_RPC
+  - DeactivateRagdoll_RPC
+  - Sync
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

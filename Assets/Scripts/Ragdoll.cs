@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
-public class Ragdoll : MonoBehaviour
+using Photon.Pun;
+using Photon.Realtime;
+public class Ragdoll : MonoBehaviourPunCallbacks 
 {
     private Collider[] m_Colliders;
     private Animator m_Animator;
@@ -18,6 +19,7 @@ public class Ragdoll : MonoBehaviour
         m_Rigidbody = GetComponent<Rigidbody>();
         m_Animator = GetComponent<Animator>();
         DeactivateRagdoll();
+        //photonView.RPC("DeactivateRagdoll_RPC", RpcTarget.All);
         m_GetUpTimer = m_GetUpCooldown;
     }
     private void Start()
@@ -38,6 +40,7 @@ public class Ragdoll : MonoBehaviour
             {
                 m_GetUpTimer = m_GetUpCooldown;
                 DeactivateRagdoll();
+                //photonView.RPC("DeactivateRagdoll_RPC", RpcTarget.All);
             }
         }
         //Debug.Log("Is ragdoll: " + m_IsInRagdollState);
@@ -91,8 +94,31 @@ public class Ragdoll : MonoBehaviour
     }
     public void Bounce(Vector3 hitDirection, Vector3 hitPoint)
     {
+        //photonView.RPC("Bounce_RPC", RpcTarget.All, hitDirection, hitPoint);
         ActivateRagdoll();
         m_Hips.GetComponent<Rigidbody>().AddForceAtPosition(new Vector3(-hitDirection.x, 1, -hitDirection.z) * 30.0f, hitPoint, ForceMode.VelocityChange);
+    }
+    [PunRPC]
+    public void Bounce_RPC(Vector3 hitDirection, Vector3 hitPoint)
+    {
+        ActivateRagdoll();
+        m_Hips.GetComponent<Rigidbody>().AddForceAtPosition(new Vector3(-hitDirection.x, 1, -hitDirection.z) * 30.0f, hitPoint, ForceMode.VelocityChange);
+    }
+    [PunRPC]
+    public void DeactivateRagdoll_RPC()
+    {
+        m_Colliders = gameObject.GetComponentsInChildren<Collider>();
+        foreach (var collider in m_Colliders)
+        {
+            if (collider.gameObject != gameObject)
+                collider.isTrigger = true;
+        }
+        EventManager.Get().EnableInput();
+        m_Animator.enabled = true;
+        m_IsInRagdollState = false;
+        m_Rigidbody.useGravity = true;
+        GetComponent<Collider>().isTrigger = false;
+        m_Rigidbody.velocity = Vector3.zero;
     }
 }
  
