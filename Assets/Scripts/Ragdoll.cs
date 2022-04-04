@@ -103,7 +103,7 @@ public class Ragdoll : MonoBehaviourPunCallbacks
         {
             if (photonView.IsMine)
                 EventManager.Get().DisableInput();
-            StartCoroutine(DelayedRagdoll(0.5f));
+            StartCoroutine(DelayedRagdoll(0.1f));
             m_Rigidbody.AddForceAtPosition(new Vector3(-hitDirection.x, 2, -hitDirection.z) * force, hitPoint, ForceMode.VelocityChange);
         }
     }
