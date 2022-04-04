@@ -19,8 +19,8 @@ namespace Game
         private float m_DashTime = 0.05f;
         private float m_DashSpeed = 20.0f;
 
-        private float m_FallMultiplier = 4.0f;
-        private float m_BabyJumpMultiplier = 3.0f;
+        private float m_FallMultiplier = 2.0f;
+        private float m_BabyJumpMultiplier = 2.0f;
         private bool m_IsDashing = false;
         private float m_DistToGround;
 
@@ -57,8 +57,32 @@ namespace Game
                 {
                     m_RigidBody.velocity = Vector3.up * m_JumpForce;
                 }
-                if(Input.GetMouseButtonDown(0))
+                else if(Input.GetKeyDown(KeyCode.Alpha1))
                 {
+                    photonView.RPC("PlayGesture", RpcTarget.All, "Gesture_Whatever");
+                }
+                else if (Input.GetKeyDown(KeyCode.Alpha2))
+                {
+                    photonView.RPC("PlayGesture", RpcTarget.All, "Gesture_Point");
+                }
+                else if (Input.GetKeyDown(KeyCode.Alpha3))
+                {
+                    photonView.RPC("PlayGesture", RpcTarget.All, "Gesture_Taunt");
+                }
+                else if (Input.GetKeyDown(KeyCode.Alpha4))
+                {
+                    photonView.RPC("PlayGesture", RpcTarget.All, "Gesture_Laughing");
+                }
+                else if (Input.GetKeyDown(KeyCode.Alpha5))
+                {
+                    photonView.RPC("PlayGesture", RpcTarget.All, "Gesture_Loser");
+                }
+                if (Input.GetMouseButtonDown(0))
+                {
+                    if(photonView.IsMine)
+                    {
+                        EventManager.Get().ReduceStamina(10);
+                    }
                     StartCoroutine(Dash());
                 }
             }
@@ -95,6 +119,11 @@ namespace Game
             return Physics.Raycast(new Vector3(transform.position.x, transform.position.y + m_DistToGround, transform.position.z), -Vector3.up, m_DistToGround + 0.3f, ~LayerMask.GetMask("Ragdoll"));
         }
 
+        [PunRPC]
+        public void PlayGesture(string gestureName)
+        {
+            m_Animator.SetTrigger(gestureName);
+        }
         private void FixedUpdate()
         {
             //Return if the instance is not local. We don't want to control other people's characters.
@@ -167,11 +196,13 @@ namespace Game
         }
         private void OnDisableInput()
         {
-            m_IsInputEnabled = false;
+            if(photonView.IsMine)
+                m_IsInputEnabled = false;
         }
         private void OnEnableInput()
         {
-            m_IsInputEnabled = true;
+            if(photonView.IsMine)
+                m_IsInputEnabled = true;
         }
     }
 }
