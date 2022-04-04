@@ -18,9 +18,13 @@ public class Ragdoll : MonoBehaviourPunCallbacks
     {
         m_Rigidbody = GetComponent<Rigidbody>();
         m_Animator = GetComponent<Animator>();
-        DeactivateRagdoll();
-        //photonView.RPC("DeactivateRagdoll_RPC", RpcTarget.All);
         m_GetUpTimer = m_GetUpCooldown;
+        //DeactivateRagdoll();
+        foreach (var collider in gameObject.GetComponentsInChildren<Collider>())
+        {
+            if (collider.gameObject != gameObject)
+                collider.isTrigger = true;
+        }
     }
     private void Start()
     {
@@ -35,52 +39,53 @@ public class Ragdoll : MonoBehaviourPunCallbacks
         if(m_IsInRagdollState)
         {
             m_GetUpTimer -= Time.deltaTime;
-            m_Rigidbody.position = new Vector3(m_Hips.transform.position.x, m_Hips.transform.position.y - 0.5f, m_Hips.transform.position.z);
             if(m_GetUpTimer <= 0.0)
             {
                 m_GetUpTimer = m_GetUpCooldown;
                 DeactivateRagdoll();
-                //photonView.RPC("DeactivateRagdoll_RPC", RpcTarget.All);
             }
         }
-        //Debug.Log("Is ragdoll: " + m_IsInRagdollState);
-        if(Input.GetKeyDown(KeyCode.E))
+    }
+    private void FixedUpdate()
+    {
+        if(m_IsInRagdollState)
         {
-            if(m_IsInRagdollState)
-                DeactivateRagdoll();
-            else
-                ActivateRagdoll();
+            m_Hips.GetComponent<Rigidbody>().MovePosition(m_Rigidbody.transform.position);
         }
     }
     private void ActivateRagdoll()
     {
+        Debug.LogError("Activated Ragdoll");
+        m_Hips.GetComponent<PhotonTransformView>().m_SynchronizePosition = true;
+        //m_Hips.GetComponent<PhotonRigidbodyView>().m_SynchronizeAngularVelocity = true;
+        //m_Hips.GetComponent<PhotonRigidbodyView>().m_SynchronizeVelocity = true;
         m_Colliders = gameObject.GetComponentsInChildren<Collider>();
         foreach (var collider in m_Colliders)
         {
             if (collider.gameObject != gameObject)
                 collider.isTrigger = false;
         }
-        EventManager.Get().DisableInput();
         m_Animator.enabled = false;
         m_IsInRagdollState = true;
-        m_Rigidbody.useGravity = false;
-        GetComponent<Collider>().isTrigger = true;
-        m_Rigidbody.velocity = Vector3.zero;
         ResetRagdollVelocity();
     }
+    
     private void DeactivateRagdoll()
     {
+        Debug.LogError("Deactivated Ragdoll");
+        m_Hips.GetComponent<PhotonTransformView>().m_SynchronizePosition = false;
+        //m_Hips.GetComponent<PhotonRigidbodyView>().m_SynchronizeAngularVelocity = false;
+        //m_Hips.GetComponent<PhotonRigidbodyView>().m_SynchronizeVelocity = false;
         m_Colliders = gameObject.GetComponentsInChildren<Collider>();
         foreach (var collider in m_Colliders)
         {
             if (collider.gameObject != gameObject)
                 collider.isTrigger = true;
         }
-        EventManager.Get().EnableInput();
+        if (photonView.IsMine)
+            EventManager.Get().EnableInput();
         m_Animator.enabled = true;
         m_IsInRagdollState = false;
-        m_Rigidbody.useGravity = true;
-        GetComponent<Collider>().isTrigger = false;
         m_Rigidbody.velocity = Vector3.zero;
     }
     private void ResetRagdollVelocity()
@@ -92,33 +97,20 @@ public class Ragdoll : MonoBehaviourPunCallbacks
                 collider.GetComponent<Rigidbody>().velocity = Vector3.zero; // TODO: Stash
         }
     }
-    public void Bounce(Vector3 hitDirection, Vector3 hitPoint)
+    public void Bounce(Vector3 hitDirection, Vector3 hitPoint, float force)
     {
-        //photonView.RPC("Bounce_RPC", RpcTarget.All, hitDirection, hitPoint);
-        ActivateRagdoll();
-        m_Hips.GetComponent<Rigidbody>().AddForceAtPosition(new Vector3(-hitDirection.x, 1, -hitDirection.z) * 30.0f, hitPoint, ForceMode.VelocityChange);
-    }
-    [PunRPC]
-    public void Bounce_RPC(Vector3 hitDirection, Vector3 hitPoint)
-    {
-        ActivateRagdoll();
-        m_Hips.GetComponent<Rigidbody>().AddForceAtPosition(new Vector3(-hitDirection.x, 1, -hitDirection.z) * 30.0f, hitPoint, ForceMode.VelocityChange);
-    }
-    [PunRPC]
-    public void DeactivateRagdoll_RPC()
-    {
-        m_Colliders = gameObject.GetComponentsInChildren<Collider>();
-        foreach (var collider in m_Colliders)
+        if(!m_IsInRagdollState)
         {
-            if (collider.gameObject != gameObject)
-                collider.isTrigger = true;
+            if (photonView.IsMine)
+                EventManager.Get().DisableInput();
+            StartCoroutine(DelayedRagdoll(0.5f));
+            m_Rigidbody.AddForceAtPosition(new Vector3(-hitDirection.x, 2, -hitDirection.z) * force, hitPoint, ForceMode.VelocityChange);
         }
-        EventManager.Get().EnableInput();
-        m_Animator.enabled = true;
-        m_IsInRagdollState = false;
-        m_Rigidbody.useGravity = true;
-        GetComponent<Collider>().isTrigger = false;
-        m_Rigidbody.velocity = Vector3.zero;
+    }
+    IEnumerator DelayedRagdoll(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        ActivateRagdoll();
     }
 }
  
