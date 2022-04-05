@@ -88,7 +88,7 @@ namespace Game
             m_Timer = m_TimerDuration;
 
             
-            m_TimerText = GameObject.Find("UI").transform.Find("TimerText").GetComponent<TextMeshProUGUI>();
+            m_TimerText = GameObject.Find("UI").transform.Find("Canvas").Find("TimerText").GetComponent<TextMeshProUGUI>();
             m_TimerText.text = "2:00";
             if (m_PlayerPrefab == null)
             {
@@ -108,7 +108,7 @@ namespace Game
             }
             if(!PhotonNetwork.IsMasterClient)
             {
-                GameObject.Find("UI").transform.Find("ReturnToHub").gameObject.SetActive(false);
+                GameObject.Find("UI").transform.Find("Canvas").transform.Find("ReturnToHub").gameObject.SetActive(false);
             }
         }
         private void Update()

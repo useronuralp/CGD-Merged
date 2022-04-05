@@ -4,7 +4,7 @@ using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine.SceneManagement;
-
+using TMPro;
 namespace Game
 {
     public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
@@ -41,6 +41,10 @@ namespace Game
         }
         private void Awake()
         {
+            if(SceneManagerHelper.ActiveSceneBuildIndex == 2)
+                photonView.RPC("SetOutlineColor", RpcTarget.All, new object[] {0.0f, 0.0f, 0.0f, 0.0f});
+            if (photonView.IsMine)
+                photonView.RPC("SetNickname", RpcTarget.AllBuffered, PhotonNetwork.NickName);
             m_Animator = GetComponent<Animator>();
             m_EvenSpawnPoints = new Dictionary<int, int>() { {0,1}, {2,2}, {4,3}, {6,4}, {8,5}, {10,6}, {12,7}, {14,8}, {16,9}, {18,10} };
             m_OddSpawnPoints  = new Dictionary<int, int>() { {1,1}, {3,2}, {5,3}, {7,4}, {9,5}, {11,6}, {13,7}, {15,8}, {17,9}, {19,10} };
@@ -53,6 +57,16 @@ namespace Game
             if(PhotonNetwork.IsMasterClient)
                 Utility.RaiseEvent(false, EventType.IncreaseInstantiatedPlayerCount, ReceiverGroup.All, EventCaching.DoNotCache, true); // PlaygroundManager catches this.
         }
+        [PunRPC]
+        private void SetOutlineColor(object[] data)
+        {
+            GetComponent<Outline>().OutlineColor = new Color((float)data[0], (float)data[1], (float)data[2], (float)data[3]);
+        }
+        [PunRPC]
+        private void SetNickname(string name)
+        {
+            transform.Find("Canvas").Find("PlayerName").GetComponent<TextMeshProUGUI>().text = name;
+        }
         public void InitialSetup(int bulldogID)
         {
             if (PhotonNetwork.LocalPlayer.ActorNumber == bulldogID)
@@ -60,29 +74,39 @@ namespace Game
             else
                 photonView.RPC("BecomeFirstRunner", RpcTarget.All);
         }
-        [PunRPC]
-        public void BecomeFirstBulldog()
+        private void SetBulldogParams()
         {
             m_IsBulldog = true;
             transform.tag = "Bulldog";
-            if(PhotonNetwork.IsMasterClient)
+            transform.Find("Canvas").Find("PlayerName").GetComponent<TextMeshProUGUI>().color = Color.red;
+            GetComponent<Outline>().OutlineColor = Color.red;
+        }
+        private void SetRunnerParams()
+        {
+            m_IsBulldog = false;
+            transform.tag = "Runner";
+            transform.Find("Canvas").Find("PlayerName").GetComponent<TextMeshProUGUI>().color = Color.blue;
+            GetComponent<Outline>().OutlineColor = Color.blue;
+        }
+        [PunRPC]
+        public void BecomeFirstBulldog()
+        {
+            
+            SetBulldogParams();
+            if (PhotonNetwork.IsMasterClient)
                 Utility.RaiseEvent(false, EventType.InitialSetupComplete, ReceiverGroup.All, EventCaching.DoNotCache, true); // PlaygroundManager catches this.
-            //m_Animator.SetTrigger("angry");
         }
         [PunRPC]
         public void BecomeFirstRunner() 
         {
-            m_IsBulldog = false;
-            transform.tag = "Runner";
+            SetRunnerParams();
             if (PhotonNetwork.IsMasterClient)
                 Utility.RaiseEvent(false, EventType.InitialSetupComplete, ReceiverGroup.All, EventCaching.DoNotCache, true); //Should only be handled by master client
         }
         [PunRPC]
         public void BecomeBulldogByEndOfRound()
         {
-            //m_Animator.SetTrigger("angry");
-            m_IsBulldog = true;
-            transform.tag = "Bulldog";
+            SetBulldogParams();
         }
         [PunRPC]
         public void BecomeBulldogByCollision()
@@ -95,9 +119,7 @@ namespace Game
                     Utility.RaiseEvent(false, EventType.BulldogsWin, ReceiverGroup.All, EventCaching.DoNotCache, true); // PlaygroundManager catches this.
                 photonView.RPC("SyncBulldogAndRunnerCounts", RpcTarget.All, new int[] { s_BulldogCount, s_RunnerCount });
             }
-            //m_Animator.SetTrigger("angry");
-            m_IsBulldog = true;
-            transform.tag = "Bulldog";
+            SetBulldogParams();
         }
         [PunRPC]
         public void PlacePlayer(bool isFirstRound)
@@ -137,7 +159,7 @@ namespace Game
                     Utility.RaiseEvent(true, EventType.BulldogsWin, ReceiverGroup.All, EventCaching.DoNotCache, true);
             }
             if(!isFirstRound)
-                StartCoroutine(ReleaseCameraDelayed(1));
+                StartCoroutine(ReleaseCameraDelayed(0.2f));
         }
         [PunRPC]
         public void SyncBulldogAndRunnerCounts(int[] countArr)

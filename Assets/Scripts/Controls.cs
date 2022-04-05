@@ -16,8 +16,8 @@ namespace Game
         private UnityEngine.Camera m_TpsCamera;
         private float              m_TurnSpeed = 2000;
 
-        private float m_DashTime = 0.05f;
-        private float m_DashSpeed = 20.0f;
+        private float m_DashTime = 0.3f;
+        private float m_DashSpeed = 7.0f;
 
         private float m_FallMultiplier = 2.0f;
         private float m_BabyJumpMultiplier = 2.0f;
@@ -51,6 +51,7 @@ namespace Game
             {
                 return;
             }
+
             if (m_IsInputEnabled)
             {
                 if (Input.GetKeyDown(KeyCode.Space) && IsGrounded())
@@ -83,7 +84,7 @@ namespace Game
                     {
                         EventManager.Get().ReduceStamina(10);
                     }
-                    StartCoroutine(Dash());
+                    StartCoroutine(Dive());
                 }
             }
 
@@ -139,30 +140,18 @@ namespace Game
             m_MovementDirection = m_TpsCamera.transform.forward * vertical + m_TpsCamera.transform.right * horizontal;
             m_MovementDirection.Normalize();
 
-
             if(m_IsInputEnabled)
             {
                 if (m_MovementDirection != Vector3.zero)
                 {
                     Vector3 turnRotationVector = new Vector3(m_MovementDirection.x, 0, m_MovementDirection.z);
                     TurnCharacterTowards(turnRotationVector, m_TurnSpeed);
-
-                    if (m_IsDashing)
-                    {
-                        m_RigidBody.MovePosition(transform.position + m_DashSpeed * 1.7f * transform.forward * Time.deltaTime);
-                    }
-                    else
-                    {
-                        m_RigidBody.MovePosition(transform.position + m_MovementSpeed * 1.7f * transform.forward * Time.deltaTime);
-                    }
+                    m_RigidBody.MovePosition(transform.position + 1.7f * m_MovementSpeed * Time.deltaTime * transform.forward);
                 }
-                else
-                {
-                    if(m_IsDashing)
-                    {
-                        m_RigidBody.MovePosition(transform.position + m_DashSpeed * 1.7f * transform.forward * Time.deltaTime);
-                    }
-                }
+            }
+            if(m_IsDashing)
+            {
+                m_RigidBody.MovePosition(transform.position + m_DashSpeed * 1.7f * transform.forward * Time.deltaTime);
             }
         }
         void TurnCharacterTowards(Vector3 direction, float turnSpeed) 
@@ -181,17 +170,18 @@ namespace Game
                 m_IsInputEnabled = false;
             }
         }
-        IEnumerator Dash()
+        IEnumerator Dive()
         {
             float startTime = Time.time;
-
-            while(Time.time < startTime + m_DashTime)
+            m_IsInputEnabled = false;
+            m_Animator.SetBool("Dive", true);
+            while (Time.time < startTime + m_DashTime)
             {
                 m_IsDashing = true;
-                //m_RigidBody.MovePosition(transform.position + m_DashSpeed * Time.deltaTime * transform.forward);
-
                 yield return null;
             }
+            StartCoroutine(EnableInputDelayed(0.2f));
+            m_Animator.SetBool("Dive", false);
             m_IsDashing = false;
         }
         private void OnDisableInput()
@@ -203,6 +193,11 @@ namespace Game
         {
             if(photonView.IsMine)
                 m_IsInputEnabled = true;
+        }
+        IEnumerator EnableInputDelayed(float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            m_IsInputEnabled = true;
         }
     }
 }
