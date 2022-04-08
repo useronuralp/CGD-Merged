@@ -18,6 +18,7 @@ namespace Game
         private GameObject      m_StartGameButton;
         [SerializeField]
         private int             m_MinimumPlayerCount; //Set it in inspector
+        private float           m_LevelSyncInterval = 2.0f;
 
         // TPS camera we use to track the player.
         private Cinemachine.CinemachineFreeLook m_FreeLookCamera;
@@ -52,6 +53,15 @@ namespace Game
         }
         private void Update()
         {
+            if(PhotonNetwork.IsMasterClient)
+            {
+                m_LevelSyncInterval -= Time.deltaTime;
+                if(m_LevelSyncInterval < 0)
+                {
+                    m_LevelSyncInterval = 2.0f;
+                    EventManager.Get().SyncObstacles();
+                }
+            }
             if (Input.GetKeyDown(KeyCode.LeftControl))
             {
                 Cursor.visible = !Cursor.visible;

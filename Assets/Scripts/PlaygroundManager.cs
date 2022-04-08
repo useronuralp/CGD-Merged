@@ -60,6 +60,8 @@ namespace Game
         private bool m_StartCountdown = false; //Meant to be only used by the master client.
         private float m_CountdownTimer = 3; //Meant to be only used by the master client.
 
+        private float m_LevelSyncInterval = 2.0f;
+
         [SerializeField]
         private Vector3 m_BulldogSpawnPoint = new Vector3(0, 5, 21);
         [SerializeField]
@@ -113,7 +115,16 @@ namespace Game
         }
         private void Update()
         {
-            if(Input.GetKeyDown(KeyCode.LeftControl))
+            if (PhotonNetwork.IsMasterClient)
+            {
+                m_LevelSyncInterval -= Time.deltaTime;
+                if (m_LevelSyncInterval < 0)
+                {
+                    m_LevelSyncInterval = 2.0f;
+                    EventManager.Get().SyncObstacles();
+                }
+            }
+            if (Input.GetKeyDown(KeyCode.LeftControl))
             {
                 Cursor.visible = !Cursor.visible;
                 Cursor.lockState = Cursor.lockState == CursorLockMode.Confined ? CursorLockMode.None : CursorLockMode.Confined;

@@ -13,7 +13,8 @@ public class Pendulum : MonoBehaviourPunCallbacks
 	// Start is called before the first frame update
 	void Awake()
     {
-		if(PhotonNetwork.IsMasterClient)
+		EventManager.Get().OnSyncObstacles += SyncRPC;
+		if (PhotonNetwork.IsMasterClient)
         {
 			if (randomStart)
 				random = Random.Range(0f, 1f);
@@ -42,5 +43,11 @@ public class Pendulum : MonoBehaviourPunCallbacks
         {
 			photonView.RPC("Sync", RpcTarget.All, time, random, transform.rotation, transform.position);
         }
+	}
+	public void SyncRPC()
+	{
+		Debug.LogError("Synced Pendulum");
+		if (PhotonNetwork.IsMasterClient)
+			photonView.RPC("Sync", RpcTarget.All, time, random, transform.rotation, transform.position);
 	}
 }

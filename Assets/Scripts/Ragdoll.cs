@@ -7,7 +7,7 @@ public class Ragdoll : MonoBehaviourPunCallbacks
 {
     private Collider[] m_Colliders;
     private Animator m_Animator;
-    private bool m_IsInRagdollState = false;
+    public bool m_IsInRagdollState = false;
     private Rigidbody m_Rigidbody;
 
     private GameObject m_Hips;
@@ -94,7 +94,9 @@ public class Ragdoll : MonoBehaviourPunCallbacks
             collider.gameObject.GetComponent<Rigidbody>().isKinematic = true;
         }
         if (photonView.IsMine)
+        {
             EventManager.Get().EnableInput();
+        }
         m_Animator.enabled = true;
         m_IsInRagdollState = false;
         m_Rigidbody.velocity = Vector3.zero;

@@ -8,7 +8,7 @@ public class EventManager : MonoBehaviour
     private static EventManager s_Instance;
     public event Action OnDisableInput;
     public event Action OnEnableInput;
-    public event Action<float> OnReduceStamina;
+    public event Action OnSyncObstacles;
     private void Awake()
     {
         s_Instance = this;
@@ -21,9 +21,9 @@ public class EventManager : MonoBehaviour
     {
         OnEnableInput?.Invoke();
     }
-    public void ReduceStamina(float amount)
+    public void SyncObstacles()
     {
-        OnReduceStamina?.Invoke(amount);
+        OnSyncObstacles?.Invoke();
     }
     //Singleton getter---------------------
     public static EventManager Get()

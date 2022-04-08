@@ -14,7 +14,7 @@ namespace Game
         private bool               m_IsInputEnabled;
         private Vector3            m_MovementDirection;
         private UnityEngine.Camera m_TpsCamera;
-        private float              m_TurnSpeed = 2000;
+        private float              m_TurnSpeed = 3000;
 
         private float m_DashTime = 0.3f;
         private float m_DashSpeed = 7.0f;
@@ -81,20 +81,18 @@ namespace Game
                 if (Input.GetMouseButtonDown(0))
                 {
                     if(photonView.IsMine)
-                    {
-                        EventManager.Get().ReduceStamina(10);
-                    }
+                        GetComponent<Stamina>().ReduceStamina(10);
                     StartCoroutine(Dive());
                 }
             }
 
             if (m_RigidBody.velocity.y < 0)
             {
-                m_RigidBody.velocity += Vector3.up * Physics.gravity.y * (m_FallMultiplier - 1) * Time.deltaTime;
+                m_RigidBody.velocity += (m_FallMultiplier - 1) * Physics.gravity.y * Time.deltaTime * Vector3.up;
             }
             else if (m_RigidBody.velocity.y > 0 && !Input.GetKey(KeyCode.Space))
             {
-                m_RigidBody.velocity += Vector3.up * Physics.gravity.y * (m_BabyJumpMultiplier - 1) * Time.deltaTime;
+                m_RigidBody.velocity += (m_BabyJumpMultiplier - 1) * Physics.gravity.y * Time.deltaTime * Vector3.up;
             }
 
             m_Animator.SetBool("isGrounded", IsGrounded());
@@ -167,6 +165,7 @@ namespace Game
             }
             else if(photonEvent.Code == (byte)EventType.RoundEnd)
             {
+                StopAllCoroutines(); // TODO: Might cause bugs, did not test this.
                 m_IsInputEnabled = false;
             }
         }
@@ -175,19 +174,25 @@ namespace Game
             float startTime = Time.time;
             m_IsInputEnabled = false;
             m_Animator.SetBool("Dive", true);
+            m_RigidBody.velocity += new Vector3(0, 4, 0);
             while (Time.time < startTime + m_DashTime)
             {
                 m_IsDashing = true;
                 yield return null;
             }
-            StartCoroutine(EnableInputDelayed(0.2f));
             m_Animator.SetBool("Dive", false);
             m_IsDashing = false;
+            StartCoroutine(EnableInputDelayed(0.2f));
         }
         private void OnDisableInput()
         {
             if(photonView.IsMine)
+            {
+                m_Animator.SetBool("Dive", false);
+                m_IsDashing = false;
+                StopAllCoroutines(); // Dive(), EnableInputDelayed(float delay);
                 m_IsInputEnabled = false;
+            }
         }
         private void OnEnableInput()
         {
@@ -197,7 +202,8 @@ namespace Game
         IEnumerator EnableInputDelayed(float delay)
         {
             yield return new WaitForSeconds(delay);
-            m_IsInputEnabled = true;
+            Debug.LogError("Enabled input corouitne");
+            OnEnableInput();
         }
     }
 }

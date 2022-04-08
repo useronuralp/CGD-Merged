@@ -1,8 +1,9 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
-
-public class Stamina : MonoBehaviour
+using Photon.Pun;
+using Photon.Realtime;
+public class Stamina : MonoBehaviourPunCallbacks
 {
     private float m_MaxStamina = 100;
     private float m_CurrentStamina = 100;
@@ -18,11 +19,10 @@ public class Stamina : MonoBehaviour
 
     private void Awake()
     {
-        m_StaminaImage = GameObject.Find("UI").transform.Find("Canvas").Find("StaminaBackgroundImage").Find("StaminaImage").GetComponent<Image>();
-        m_StaminaBackground = GameObject.Find("UI").transform.Find("Canvas").Find("StaminaBackgroundImage").GetComponent<Image>();
+        m_StaminaImage = transform.Find("StaminaCanvas").Find("StaminaBackgroundImage").Find("StaminaImage").GetComponent<Image>();
+        m_StaminaBackground = transform.Find("StaminaCanvas").Find("StaminaBackgroundImage").GetComponent<Image>();
         m_StaminaBarDisappearTimer = m_StaminaBarDisappearCooldown;
         m_StaminaRechargeTimer = m_StaminaRechargeCooldown;
-        EventManager.Get().OnReduceStamina += ReduceStamina;
     }
     private void Start()
     {

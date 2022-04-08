@@ -6,6 +6,10 @@ using Photon.Pun;
 
 public class PushRotators : MonoBehaviourPunCallbacks
 {
+	private void Awake()
+	{
+		EventManager.Get().OnSyncObstacles += SyncRPC;
+	}
 	[PunRPC]
 	public void Sync(Vector3 position, Quaternion rotation)
 	{
@@ -17,5 +21,11 @@ public class PushRotators : MonoBehaviourPunCallbacks
 		{
 			photonView.RPC("Sync", RpcTarget.All, transform.position, transform.rotation);
 		}
+	}
+	public void SyncRPC()
+	{
+		Debug.LogError("Synced PushRotators");
+		if (PhotonNetwork.IsMasterClient)
+			photonView.RPC("Sync", RpcTarget.All, transform.position, transform.rotation);
 	}
 }

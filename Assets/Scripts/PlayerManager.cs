@@ -65,7 +65,7 @@ namespace Game
         [PunRPC]
         private void SetNickname(string name)
         {
-            transform.Find("Canvas").Find("PlayerName").GetComponent<TextMeshProUGUI>().text = name;
+            transform.Find("NameCanvas").Find("PlayerName").GetComponent<TextMeshProUGUI>().text = name;
         }
         public void InitialSetup(int bulldogID)
         {
@@ -78,14 +78,14 @@ namespace Game
         {
             m_IsBulldog = true;
             transform.tag = "Bulldog";
-            transform.Find("Canvas").Find("PlayerName").GetComponent<TextMeshProUGUI>().color = Color.red;
+            transform.Find("NameCanvas").Find("PlayerName").GetComponent<TextMeshProUGUI>().color = Color.red;
             GetComponent<Outline>().OutlineColor = Color.red;
         }
         private void SetRunnerParams()
         {
             m_IsBulldog = false;
             transform.tag = "Runner";
-            transform.Find("Canvas").Find("PlayerName").GetComponent<TextMeshProUGUI>().color = Color.blue;
+            transform.Find("NameCanvas").Find("PlayerName").GetComponent<TextMeshProUGUI>().color = Color.blue;
             GetComponent<Outline>().OutlineColor = Color.blue;
         }
         [PunRPC]
