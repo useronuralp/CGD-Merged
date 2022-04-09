@@ -13,7 +13,6 @@ public class Pendulum : MonoBehaviourPunCallbacks
 	// Start is called before the first frame update
 	void Awake()
     {
-		EventManager.Get().OnSyncObstacles += SyncRPC;
 		if (PhotonNetwork.IsMasterClient)
         {
 			if (randomStart)
@@ -21,9 +20,12 @@ public class Pendulum : MonoBehaviourPunCallbacks
 			time = Time.time;
         }
 	}
-
-    // Update is called once per frame
-    void Update()
+	private void Start()
+	{
+		EventManager.Get().OnSyncObstacles += SyncRPC;
+	}
+	// Update is called once per frame
+	void Update()
     {
 		time += Time.deltaTime;
 		float angle = limit * Mathf.Sin(time + random * speed);
@@ -38,15 +40,11 @@ public class Pendulum : MonoBehaviourPunCallbacks
     }
 	public override void OnPlayerEnteredRoom(Player other)
 	{
-		Debug.LogFormat("Pendulum", other.NickName); // not seen if you're the player connecting
 		if(PhotonNetwork.IsMasterClient)
-        {
 			photonView.RPC("Sync", RpcTarget.All, time, random, transform.rotation, transform.position);
-        }
 	}
 	public void SyncRPC()
 	{
-		Debug.LogError("Synced Pendulum");
 		if (PhotonNetwork.IsMasterClient)
 			photonView.RPC("Sync", RpcTarget.All, time, random, transform.rotation, transform.position);
 	}

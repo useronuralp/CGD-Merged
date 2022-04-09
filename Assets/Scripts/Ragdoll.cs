@@ -87,6 +87,7 @@ public class Ragdoll : MonoBehaviourPunCallbacks
     [PunRPC]
     private void DeactivateRagdoll()
     {
+        EventManager.Get().StopRagdolling();
         m_HipsTransformView.m_SynchronizePosition = false;
         foreach (var collider in m_RagdollColliders)
         {
@@ -110,7 +111,8 @@ public class Ragdoll : MonoBehaviourPunCallbacks
     {
         if(!m_IsInRagdollState && photonView.IsMine)
         {
-            EventManager.Get().DisableInput();
+            EventManager.Get().DisableInput(Game.SenderType.HitByObstacle);
+            EventManager.Get().StartRagdolling();
             StartCoroutine(DelayedRagdoll(0.1f));
             m_Rigidbody.AddForceAtPosition(new Vector3(-hitDirection.x, 2, -hitDirection.z) * force, hitPoint, ForceMode.VelocityChange);
         }

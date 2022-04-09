@@ -37,6 +37,11 @@ namespace Game
         InitPlayers,
         ReleaseCamera,
     }
+    public enum SenderType : int
+    {
+        Standard,
+        HitByObstacle,
+    }
     public class PlaygroundManager : MonoBehaviourPunCallbacks, IOnEventCallback
     {
         [SerializeField]
@@ -78,9 +83,8 @@ namespace Game
         }
         void Start()
         {
-            Cursor.visible = false;
-            Cursor.lockState = CursorLockMode.Locked;
-
+            EventManager.Get().OnToggleCursor += OnToggleCursor;
+            LockCursor();
             m_NumberOfInstantitatedPlayers = 0;
             m_NumberOfInitiallySetupPlayers = 0;
 
@@ -123,11 +127,6 @@ namespace Game
                     m_LevelSyncInterval = 2.0f;
                     EventManager.Get().SyncObstacles();
                 }
-            }
-            if (Input.GetKeyDown(KeyCode.LeftControl))
-            {
-                Cursor.visible = !Cursor.visible;
-                Cursor.lockState = Cursor.lockState == CursorLockMode.Confined ? CursorLockMode.None : CursorLockMode.Confined;
             }
             //Debug.LogError("Instantiated Players:" + m_NumberOfInstantitatedPlayers);
             // Master - Client sets up the game here.
@@ -271,6 +270,30 @@ namespace Game
         public void OnPressedReturnToHubButton()
         {
             PhotonNetwork.LoadLevel(2);
+        }
+        public void LockCursor()
+        {
+            Cursor.visible = false;
+            Cursor.lockState = CursorLockMode.Locked;
+        }
+        public void OnToggleCursor()
+        {
+            Cursor.visible = !Cursor.visible;
+            Cursor.lockState = Cursor.lockState == CursorLockMode.Locked ? CursorLockMode.None : CursorLockMode.Locked;
+            if (Cursor.lockState == CursorLockMode.Locked)
+            {
+                m_FreeLookCamera.m_XAxis.m_InputAxisName = "Mouse X";
+                m_FreeLookCamera.m_YAxis.m_InputAxisName = "Mouse Y";
+                EventManager.Get().EnableInput();
+            }
+            else
+            {
+                m_FreeLookCamera.m_XAxis.m_InputAxisName = "";
+                m_FreeLookCamera.m_YAxis.m_InputAxisName = "";
+                m_FreeLookCamera.m_XAxis.m_InputAxisValue = 0;
+                m_FreeLookCamera.m_YAxis.m_InputAxisValue = 0;
+                EventManager.Get().DisableInput(SenderType.Standard);
+            }
         }
     }
 }

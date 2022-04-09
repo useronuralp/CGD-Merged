@@ -15,6 +15,9 @@ namespace Game
         private Vector3            m_MovementDirection;
         private UnityEngine.Camera m_TpsCamera;
         private float              m_TurnSpeed = 3000;
+        private bool               m_IsRagdolling = false;
+        private bool               m_IsEmoting = false;
+        private bool               DoOnce = true;
 
         private float m_DashTime = 0.3f;
         private float m_DashSpeed = 7.0f;
@@ -23,6 +26,7 @@ namespace Game
         private float m_BabyJumpMultiplier = 2.0f;
         private bool m_IsDashing = false;
         private float m_DistToGround;
+        private string[] m_GestureNames = { "Whatever_Gesture", "Loser", "Taunt", "Pointing_Gesture", "Laughing" };
 
         private Animator m_Animator;
         
@@ -42,14 +46,30 @@ namespace Game
         {
             EventManager.Get().OnEnableInput += OnEnableInput;
             EventManager.Get().OnDisableInput += OnDisableInput;
+            EventManager.Get().OnRagdolling += OnRagdolling;
+            EventManager.Get().OnNotRagdolling += OnNotRagdolling;
         }
         void Update()
         {
-            //Debug.Log(IsGrounded());
             //Return if the instance is not local. We don't want to control other people's characters.
             if (photonView.IsMine == false)
             {
                 return;
+            }
+            if(isEmoting())
+            {
+                DoOnce = true;
+                m_IsInputEnabled = false;
+                m_IsEmoting = true;
+            }
+            else
+            {
+                if(DoOnce && !m_IsRagdolling && !m_IsDashing)
+                {
+                    DoOnce = false;
+                    m_IsInputEnabled = true;
+                    m_IsEmoting = false;
+                }
             }
 
             if (m_IsInputEnabled)
@@ -85,6 +105,11 @@ namespace Game
                     StartCoroutine(Dive());
                 }
             }
+            if (Input.GetKeyDown(KeyCode.LeftControl) && !m_IsDashing && !m_IsRagdolling && !m_IsEmoting)
+            {
+                EventManager.Get().ToggleCursor();
+            }
+
 
             if (m_RigidBody.velocity.y < 0)
             {
@@ -113,7 +138,6 @@ namespace Game
         }
         public bool IsGrounded()
         {
-            //m_RigidBody.velocity = new Vector3(0, 0, 0);
             Debug.DrawRay(new Vector3(transform.position.x, transform.position.y + m_DistToGround, transform.position.z), -Vector3.up, Color.yellow, m_DistToGround + 0.3f);
             return Physics.Raycast(new Vector3(transform.position.x, transform.position.y + m_DistToGround, transform.position.z), -Vector3.up, m_DistToGround + 0.3f, ~LayerMask.GetMask("Ragdoll"));
         }
@@ -121,6 +145,7 @@ namespace Game
         [PunRPC]
         public void PlayGesture(string gestureName)
         {
+            m_IsEmoting = true;
             m_Animator.SetTrigger(gestureName);
         }
         private void FixedUpdate()
@@ -184,14 +209,23 @@ namespace Game
             m_IsDashing = false;
             StartCoroutine(EnableInputDelayed(0.2f));
         }
-        private void OnDisableInput()
+        private void OnDisableInput(SenderType type)
         {
-            if(photonView.IsMine)
+            if (photonView.IsMine)
             {
-                m_Animator.SetBool("Dive", false);
-                m_IsDashing = false;
-                StopAllCoroutines(); // Dive(), EnableInputDelayed(float delay);
-                m_IsInputEnabled = false;
+                switch(type)
+                {
+                    case SenderType.Standard:
+                        m_IsInputEnabled = false;
+                        break;
+
+                    case SenderType.HitByObstacle:
+                        m_Animator.SetBool("Dive", false);
+                        m_IsDashing = false;
+                        StopAllCoroutines(); // Dive(), EnableInputDelayed(float delay);
+                        m_IsInputEnabled = false;
+                        break;
+                }
             }
         }
         private void OnEnableInput()
@@ -202,8 +236,25 @@ namespace Game
         IEnumerator EnableInputDelayed(float delay)
         {
             yield return new WaitForSeconds(delay);
-            Debug.LogError("Enabled input corouitne");
-            OnEnableInput();
+            if(GameObject.Find("PlayerCamera").GetComponent<Cinemachine.CinemachineFreeLook>().m_XAxis.m_InputAxisName != "" && GameObject.Find("PlayerCamera").GetComponent<Cinemachine.CinemachineFreeLook>().m_YAxis.m_InputAxisName != "")
+                OnEnableInput();
+        }
+        public void OnRagdolling()
+        {
+            m_IsRagdolling = true;
+        }
+        public void OnNotRagdolling()
+        {
+            m_IsRagdolling = false;
+        }
+        bool isEmoting()
+        {
+            foreach(string name in m_GestureNames)
+            {
+                if (m_Animator.GetCurrentAnimatorStateInfo(0).IsName(name) && m_Animator.GetCurrentAnimatorStateInfo(0).normalizedTime < 1.0f)
+                    return true;
+            }
+            return false;
         }
     }
 }

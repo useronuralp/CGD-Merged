@@ -29,8 +29,8 @@ namespace Game
         }
         private void Start()
         {
-            Cursor.visible = false;
-            Cursor.lockState = CursorLockMode.Locked;
+            EventManager.Get().OnToggleCursor += OnToggleCursor;
+            LockCursor();
             if (m_PlayerPrefab == null)
             {
 
@@ -61,11 +61,6 @@ namespace Game
                     m_LevelSyncInterval = 2.0f;
                     EventManager.Get().SyncObstacles();
                 }
-            }
-            if (Input.GetKeyDown(KeyCode.LeftControl))
-            {
-                Cursor.visible = !Cursor.visible;
-                Cursor.lockState = Cursor.lockState == CursorLockMode.Locked ? CursorLockMode.None: CursorLockMode.Locked;
             }
             if (PhotonNetwork.CurrentRoom.PlayerCount >= m_MinimumPlayerCount)
             {
@@ -109,6 +104,30 @@ namespace Game
         public void FadeOut()
         {
             m_UI.transform.Find("Canvas").Find("BlackScreen").GetComponent<Animator>().SetTrigger("FadeOut");
+        }
+        public void LockCursor()
+        {
+            Cursor.visible = false;
+            Cursor.lockState = CursorLockMode.Locked;
+        }
+        public void OnToggleCursor()
+        {
+            Cursor.visible = !Cursor.visible;
+            Cursor.lockState = Cursor.lockState == CursorLockMode.Locked ? CursorLockMode.None : CursorLockMode.Locked;
+            if (Cursor.lockState == CursorLockMode.Locked)
+            {
+                m_FreeLookCamera.m_XAxis.m_InputAxisName = "Mouse X";
+                m_FreeLookCamera.m_YAxis.m_InputAxisName = "Mouse Y";
+                EventManager.Get().EnableInput();
+            }
+            else
+            {
+                m_FreeLookCamera.m_XAxis.m_InputAxisName = "";
+                m_FreeLookCamera.m_YAxis.m_InputAxisName = "";
+                m_FreeLookCamera.m_XAxis.m_InputAxisValue = 0;
+                m_FreeLookCamera.m_YAxis.m_InputAxisValue = 0;
+                EventManager.Get().DisableInput(SenderType.Standard);
+            }
         }
     }
 }

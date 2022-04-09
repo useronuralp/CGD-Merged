@@ -6,7 +6,7 @@ using Photon.Pun;
 
 public class PushRotators : MonoBehaviourPunCallbacks
 {
-	private void Awake()
+	private void Start()
 	{
 		EventManager.Get().OnSyncObstacles += SyncRPC;
 	}
@@ -24,7 +24,6 @@ public class PushRotators : MonoBehaviourPunCallbacks
 	}
 	public void SyncRPC()
 	{
-		Debug.LogError("Synced PushRotators");
 		if (PhotonNetwork.IsMasterClient)
 			photonView.RPC("Sync", RpcTarget.All, transform.position, transform.rotation);
 	}

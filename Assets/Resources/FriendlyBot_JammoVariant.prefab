@@ -289,6 +289,9 @@ MonoBehaviour:
   - Type: 9
     SynchronizeType: 2
     Name: Dive
+  - Type: 4
+    SynchronizeType: 2
+    Name: isEmoting
   m_SynchronizeLayers:
   - SynchronizeType: 0
     LayerIndex: 0
