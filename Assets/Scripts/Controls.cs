@@ -78,23 +78,23 @@ namespace Game
                 {
                     m_RigidBody.velocity = Vector3.up * m_JumpForce;
                 }
-                else if(Input.GetKeyDown(KeyCode.Alpha1))
+                else if(Input.GetKeyDown(KeyCode.Alpha1) && IsGrounded())
                 {
                     photonView.RPC("PlayGesture", RpcTarget.All, "Gesture_Whatever");
                 }
-                else if (Input.GetKeyDown(KeyCode.Alpha2))
+                else if (Input.GetKeyDown(KeyCode.Alpha2) && IsGrounded())
                 {
                     photonView.RPC("PlayGesture", RpcTarget.All, "Gesture_Point");
                 }
-                else if (Input.GetKeyDown(KeyCode.Alpha3))
+                else if (Input.GetKeyDown(KeyCode.Alpha3) && IsGrounded())
                 {
                     photonView.RPC("PlayGesture", RpcTarget.All, "Gesture_Taunt");
                 }
-                else if (Input.GetKeyDown(KeyCode.Alpha4))
+                else if (Input.GetKeyDown(KeyCode.Alpha4) && IsGrounded())
                 {
                     photonView.RPC("PlayGesture", RpcTarget.All, "Gesture_Laughing");
                 }
-                else if (Input.GetKeyDown(KeyCode.Alpha5))
+                else if (Input.GetKeyDown(KeyCode.Alpha5) && IsGrounded())
                 {
                     photonView.RPC("PlayGesture", RpcTarget.All, "Gesture_Loser");
                 }
