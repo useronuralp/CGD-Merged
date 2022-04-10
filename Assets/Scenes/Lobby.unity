@@ -12476,6 +12476,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Jammo_Player_Dapper
       objectReference: {fileID: 0}
+    - target: {fileID: 4757836856755875626, guid: b61a44ac6a6044d4ca2426ae8bf82004, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b61a44ac6a6044d4ca2426ae8bf82004, type: 3}
 --- !u!4 &1766713909 stripped
@@ -12797,6 +12801,10 @@ PrefabInstance:
     - target: {fileID: 3541754002163558908, guid: bd6ee82c5e06b3f4f86113cbf8261ae1, type: 3}
       propertyPath: m_Name
       value: Jammo_Player
+      objectReference: {fileID: 0}
+    - target: {fileID: 4757836856755875626, guid: bd6ee82c5e06b3f4f86113cbf8261ae1, type: 3}
+      propertyPath: m_Enabled
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8187075642112704994, guid: bd6ee82c5e06b3f4f86113cbf8261ae1, type: 3}
       propertyPath: m_RootOrder

@@ -17,7 +17,7 @@ namespace Game
         private float              m_TurnSpeed = 3000;
         private bool               m_IsRagdolling = false;
         private bool               m_IsEmoting = false;
-        private bool               DoOnce = true;
+        private bool               DoOnce = false;
 
         private float m_DashTime = 0.3f;
         private float m_DashSpeed = 7.0f;
