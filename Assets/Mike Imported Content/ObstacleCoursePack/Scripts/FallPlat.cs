@@ -5,30 +5,23 @@ using UnityEngine;
 public class FallPlat : MonoBehaviour
 {
 	public float fallTime = 0.5f;
-	public float appearTime = 2.5f;
-	private MeshRenderer m_MR;
-	private Collider m_Collider;
-    private void Awake()
-    {
-		m_Collider = GetComponent<Collider>();
-		m_MR = GetComponent<MeshRenderer>();
-    }
-    void OnCollisionEnter(Collision collision)
+
+
+	void OnCollisionEnter(Collision collision)
 	{
-		if (collision.gameObject.CompareTag("Player"))
-			StartCoroutine(Disappear(fallTime));
+		foreach (ContactPoint contact in collision.contacts)
+		{
+			//Debug.DrawRay(contact.point, contact.normal, Color.white);
+			if (collision.gameObject.tag == "Player")
+			{
+				StartCoroutine(Fall(fallTime));
+			}
+		}
 	}
-	IEnumerator Disappear(float time)
+
+	IEnumerator Fall(float time)
 	{
 		yield return new WaitForSeconds(time);
-		m_Collider.enabled = false;
-		m_MR.enabled = false;
-		StartCoroutine(Appear(appearTime));
-	}
-	IEnumerator Appear(float time)
-    {
-		yield return new WaitForSeconds(time);
-		m_Collider.enabled = true;
-		m_MR.enabled = true;
+		Destroy(gameObject);
 	}
 }
