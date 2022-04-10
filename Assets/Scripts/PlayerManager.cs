@@ -230,7 +230,6 @@ namespace Game
                 {
                     photonView.RPC("BecomeBulldogByCollision", RpcTarget.All);
                 }
-
             }
         }
         private void OnTriggerEnter(Collider other)

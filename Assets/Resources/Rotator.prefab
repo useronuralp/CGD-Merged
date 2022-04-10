@@ -123,8 +123,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fdffcc51f538bef4c8abd3b5bbb6ff17, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  force: 25
-  stunTime: 0.5
+  bounceForce: 7
 --- !u!54 &4416347176131427345
 Rigidbody:
   m_ObjectHideFlags: 0
