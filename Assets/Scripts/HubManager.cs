@@ -22,13 +22,11 @@ namespace Game
 
         // TPS camera we use to track the player.
         private Cinemachine.CinemachineFreeLook m_FreeLookCamera;
-        private void Awake()
+        private void Start()
         {
             m_FreeLookCamera = GameObject.Find("PlayerCamera").GetComponent<Cinemachine.CinemachineFreeLook>();
             m_FreeLookCamera.m_RecenterToTargetHeading.m_enabled = false;
-        }
-        private void Start()
-        {
+            PhotonNetwork.CurrentRoom.IsOpen = true;
             EventManager.Get().OnToggleCursor += OnToggleCursor;
             LockCursor();
             if (m_PlayerPrefab == null)
@@ -40,7 +38,7 @@ namespace Game
             {
                 if (PlayerManager.s_LocalPlayerInstance == null) 
                 {
-                    //Debug.LogFormat("We are Instantiating LocalPlayer from {0}", SceneManagerHelper.ActiveSceneName);
+                    Debug.LogFormat("We are Instantiating LocalPlayer from {0}", SceneManagerHelper.ActiveSceneName);
                     PhotonNetwork.Instantiate(m_PlayerPrefab.name, new Vector3(0f, 5f, 0f), Quaternion.identity, 0);
                 }
                 else
@@ -77,6 +75,7 @@ namespace Game
         }
         public void OnStartGameButtonPressed()
         {
+            PhotonNetwork.CurrentRoom.IsOpen = false;
             photonView.RPC("FadeOut", RpcTarget.All);
         }
         public override void OnPlayerEnteredRoom(Player other)

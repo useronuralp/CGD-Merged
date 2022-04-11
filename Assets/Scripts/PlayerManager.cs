@@ -35,11 +35,7 @@ namespace Game
         {
             PlacePlayer(false);
         }
-        private void Update()
-        {
-            //Debug.LogError("B ->" + s_BulldogCount + " R ->" + s_RunnerCount);
-        }
-        private void Awake()
+        private void Start()
         {
             if(SceneManagerHelper.ActiveSceneBuildIndex == 2)
                 photonView.RPC("SetOutlineColor", RpcTarget.All, new object[] {0.0f, 0.0f, 0.0f, 0.0f});
@@ -56,6 +52,11 @@ namespace Game
             }
             if(PhotonNetwork.IsMasterClient)
                 Utility.RaiseEvent(false, EventType.IncreaseInstantiatedPlayerCount, ReceiverGroup.All, EventCaching.DoNotCache, true); // PlaygroundManager catches this.
+            
+        }
+        private void Update()
+        {
+            //Debug.LogError("B ->" + s_BulldogCount + " R ->" + s_RunnerCount);
         }
         [PunRPC]
         private void SetOutlineColor(object[] data)

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Bounce : MonoBehaviour
 {
-    public float bounceForce = 12.0f;
+    public float bounceForce = 7.0f;
 	void OnCollisionEnter(Collision collision)
 	{
         foreach (ContactPoint contact in collision.contacts)

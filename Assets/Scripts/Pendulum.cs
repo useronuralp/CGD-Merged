@@ -10,7 +10,6 @@ public class Pendulum : MonoBehaviourPunCallbacks
 	public bool randomStart = false; //If you want to modify the start position
 	private float random = 0;
 	private float time = 0;
-	// Start is called before the first frame update
 	void Awake()
     {
 		if (PhotonNetwork.IsMasterClient)
@@ -24,7 +23,6 @@ public class Pendulum : MonoBehaviourPunCallbacks
 	{
 		EventManager.Get().OnSyncObstacles += SyncRPC;
 	}
-	// Update is called once per frame
 	void Update()
     {
 		time += Time.deltaTime;

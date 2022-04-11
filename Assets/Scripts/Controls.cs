@@ -199,7 +199,6 @@ namespace Game
             float startTime = Time.time;
             m_IsInputEnabled = false;
             m_Animator.SetBool("Dive", true);
-            m_RigidBody.velocity += new Vector3(0, 4, 0);
             while (Time.time < startTime + m_DashTime)
             {
                 m_IsDashing = true;

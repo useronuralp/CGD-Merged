@@ -76,13 +76,10 @@ namespace Game
 
         // TPS camera we use to track the player.
         private Cinemachine.CinemachineFreeLook m_FreeLookCamera;
-        private void Awake()
+        void Start()
         {
             m_FreeLookCamera = GameObject.Find("PlayerCamera").GetComponent<Cinemachine.CinemachineFreeLook>();
             m_FreeLookCamera.m_RecenterToTargetHeading.m_enabled = true;
-        }
-        void Start()
-        {
             EventManager.Get().OnToggleCursor += OnToggleCursor;
             LockCursor();
             m_NumberOfInstantitatedPlayers = 0;

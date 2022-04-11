@@ -122,6 +122,8 @@ namespace Game
                 GameObject newRoomButton = Instantiate(RoomButtonPrefab, content);
 
                 newRoomButton.transform.Find("RoomNameText").GetComponent<TextMeshProUGUI>().text = info.Value.Name;
+                if (!info.Value.IsOpen)
+                    newRoomButton.transform.Find("RoomNameText").GetComponent<TextMeshProUGUI>().text += " (In Progress...)";
                 newRoomButton.transform.Find("PlayerCountText").GetComponent<TextMeshProUGUI>().text = info.Value.PlayerCount + "/" + info.Value.MaxPlayers;
 
                 newRoomButton.GetComponent<Button>().onClick.AddListener(delegate { JoinRoom(newRoomButton.transform); } );
@@ -132,7 +134,7 @@ namespace Game
             foreach (RoomInfo info in roomList)
             {
                 // Remove room from cached room list if it got closed, became invisible or was marked as removed
-                if (!info.IsOpen || !info.IsVisible || info.RemovedFromList)
+                if (!info.IsVisible || info.RemovedFromList)
                 {
                     if (_cachedRoomList.ContainsKey(info.Name))
                     {
