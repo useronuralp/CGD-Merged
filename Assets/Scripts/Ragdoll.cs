@@ -5,7 +5,6 @@ using Photon.Pun;
 using Photon.Realtime;
 public class Ragdoll : MonoBehaviourPunCallbacks 
 {
-    private Collider[] m_Colliders;
     private Animator m_Animator;
     public bool m_IsInRagdollState = false;
     private Rigidbody m_Rigidbody;
@@ -94,13 +93,19 @@ public class Ragdoll : MonoBehaviourPunCallbacks
             collider.isTrigger = true;
             collider.gameObject.GetComponent<Rigidbody>().isKinematic = true;
         }
+        m_Animator.SetTrigger("GetUp");
+        EventManager.Get().StartedGettingUp();
+        m_Animator.enabled = true;
+        m_Rigidbody.velocity = Vector3.zero;
+        m_IsInRagdollState = false;
+    }
+    public void EnableInput() //To be used by animation events.
+    {
         if (photonView.IsMine)
         {
+            EventManager.Get().StoppedGettingUp();
             EventManager.Get().EnableInput();
         }
-        m_Animator.enabled = true;
-        m_IsInRagdollState = false;
-        m_Rigidbody.velocity = Vector3.zero;
     }
     private void ResetRagdollVelocity()
     {

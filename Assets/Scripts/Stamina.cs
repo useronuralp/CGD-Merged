@@ -6,7 +6,7 @@ using Photon.Realtime;
 public class Stamina : MonoBehaviourPunCallbacks
 {
     private float m_MaxStamina = 100;
-    private float m_CurrentStamina = 100;
+    public float m_CurrentStamina { get; set; } = 100;
     private float m_UpdateSpeedSeconds = 0.2f; //Used in coroutine to slowly animate health drops.
     private float m_StaminaRechargeCooldown = 2.0f;
     private float m_StaminaBarDisappearTimer = 2.0f;

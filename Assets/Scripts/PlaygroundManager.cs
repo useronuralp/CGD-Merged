@@ -54,6 +54,7 @@ namespace Game
         private float           m_Timer;
 
         private TextMeshProUGUI m_TimerText;
+        private TextMeshProUGUI m_CountdownText; 
         private bool            m_HasRoundStarted;
 
         static public int       m_NumberOfInstantitatedPlayers = 0;
@@ -63,7 +64,7 @@ namespace Game
         private bool DoOnce2 = true;
 
         private bool m_StartCountdown = false; //Meant to be only used by the master client.
-        private float m_CountdownTimer = 3; //Meant to be only used by the master client.
+        private float m_CountdownTimer = 3;
 
         private float m_LevelSyncInterval = 2.0f;
 
@@ -92,6 +93,9 @@ namespace Game
 
             
             m_TimerText = GameObject.Find("UI").transform.Find("Canvas").Find("TimerText").GetComponent<TextMeshProUGUI>();
+            m_CountdownText = GameObject.Find("UI").transform.Find("Canvas").Find("Countdown").GetComponent<TextMeshProUGUI>();
+            m_CountdownText.text = "3";
+            m_CountdownText.gameObject.SetActive(false);
             m_TimerText.text = "2:00";
             if (m_PlayerPrefab == null)
             {
@@ -125,20 +129,21 @@ namespace Game
                     EventManager.Get().SyncObstacles();
                 }
             }
-            //Debug.LogError("Instantiated Players:" + m_NumberOfInstantitatedPlayers);
             // Master - Client sets up the game here.
+            if (m_StartCountdown)
+            {
+                m_CountdownTimer -= Time.deltaTime;
+                m_CountdownText.text = ((int)m_CountdownTimer + 1).ToString();
+                if (m_CountdownTimer <= 0)
+                {
+                    m_StartCountdown = false;
+                    m_CountdownTimer = 3;
+                    if (PhotonNetwork.IsMasterClient)
+                        StartRound();
+                }
+            }
             if (PhotonNetwork.IsMasterClient)
             {
-                if(m_StartCountdown)
-                {
-                    m_CountdownTimer -= Time.deltaTime;
-                    if(m_CountdownTimer <= 0)
-                    {
-                        m_StartCountdown = false;
-                        m_CountdownTimer = 3;
-                        StartRound();
-                    }
-                }
                 if(Input.GetKeyDown(KeyCode.R))
                 {
                     RestartRound();
@@ -190,16 +195,28 @@ namespace Game
                 m_LocalPlayer.GetComponent<PlayerManager>().ResetSpawnNumbering();
                 Utility.RaiseEvent(new object[] {m_BulldogSpawnPoint, m_RunnerSpawnPoint, m_SpawnSpacing}, EventType.InitPlayers, ReceiverGroup.All, EventCaching.DoNotCache, true);
                 Utility.RaiseEvent(false, EventType.PlacePlayers, ReceiverGroup.All, EventCaching.DoNotCache, true);
-                m_StartCountdown = true;
+                photonView.RPC("StartCountdown", RpcTarget.All);
             }
         }
-        public void StartRound() //Called by the Timeline Component that can be found in the MainCamera game object in the PlaygroundScene.
+        public void StartRound() // Called whenever a rounds ends and the next one is intented to be started.
         {
             if (PhotonNetwork.IsMasterClient)
             {
                 Utility.RaiseEvent(true, EventType.RoundStart, ReceiverGroup.All, EventCaching.DoNotCache, true);
                 photonView.RPC("ReleaseCamera", RpcTarget.All);
             }
+        }
+        public void StartRoundFirst() //Called by the Timeline Component that can be found in the MainCamera game object in the PlaygroundScene.
+        {
+            if (PhotonNetwork.IsMasterClient)
+                photonView.RPC("StartCountdown", RpcTarget.All);
+        }
+        [PunRPC]
+        public void StartCountdown()
+        {
+            m_FreeLookCamera.m_RecenterToTargetHeading.m_enabled = false;
+            m_CountdownText.gameObject.SetActive(true);
+            m_StartCountdown = true;
         }
         public void OnEvent(ExitGames.Client.Photon.EventData photonEvent)
         {
@@ -239,6 +256,7 @@ namespace Game
         [PunRPC]
         public void ResetRound()
         {
+            m_CountdownText.gameObject.SetActive(true);
             m_Timer = m_TimerDuration;
             m_TimerText.text = "2:00";
             m_FreeLookCamera.m_RecenterToTargetHeading.m_enabled = true;
@@ -247,6 +265,7 @@ namespace Game
         [PunRPC]
         public void ReleaseCamera()
         {
+            m_CountdownText.gameObject.SetActive(false);
             m_FreeLookCamera.m_RecenterToTargetHeading.m_enabled = false;
         }
         [PunRPC]

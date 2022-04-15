@@ -12,6 +12,8 @@ public class EventManager : MonoBehaviourPunCallbacks
     public event Action OnToggleCursor;
     public event Action OnRagdolling;
     public event Action OnNotRagdolling;
+    public event Action OnStartedGettingUp;
+    public event Action OnStoppedGettingUp;   
     private void Awake()
     {
         s_Instance = this;
@@ -39,6 +41,14 @@ public class EventManager : MonoBehaviourPunCallbacks
     public void StopRagdolling()
     {
         OnNotRagdolling?.Invoke();
+    }
+    public void StartedGettingUp()
+    {
+        OnStartedGettingUp?.Invoke();
+    }
+    public void StoppedGettingUp()
+    {
+        OnStoppedGettingUp?.Invoke();
     }
     //Singleton getter---------------------
     public static EventManager Get()

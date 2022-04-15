@@ -18,6 +18,9 @@ namespace Game
         private bool               m_IsRagdolling = false;
         private bool               m_IsEmoting = false;
         private bool               DoOnce = false;
+        private bool               m_IsGettingUp = false;
+
+        private Stamina            m_StaminaScript;
 
         private float m_DashTime = 0.3f;
         private float m_DashSpeed = 7.0f;
@@ -44,10 +47,13 @@ namespace Game
         }
         private void Start()
         {
+            m_StaminaScript = GetComponent<Stamina>();
             EventManager.Get().OnEnableInput += OnEnableInput;
             EventManager.Get().OnDisableInput += OnDisableInput;
             EventManager.Get().OnRagdolling += OnRagdolling;
             EventManager.Get().OnNotRagdolling += OnNotRagdolling;
+            EventManager.Get().OnStartedGettingUp += OnStartedGettingUp;
+            EventManager.Get().OnStoppedGettingUp += OnStoppedGettingUp;
         }
         void Update()
         {
@@ -98,18 +104,17 @@ namespace Game
                 {
                     photonView.RPC("PlayGesture", RpcTarget.All, "Gesture_Loser");
                 }
-                if (Input.GetMouseButtonDown(0))
+                if (Input.GetMouseButtonDown(0) && m_StaminaScript.m_CurrentStamina > 0.0f)
                 {
                     if(photonView.IsMine)
-                        GetComponent<Stamina>().ReduceStamina(10);
+                        m_StaminaScript.ReduceStamina(50);
                     StartCoroutine(Dive());
                 }
             }
-            if (Input.GetKeyDown(KeyCode.LeftControl) && !m_IsDashing && !m_IsRagdolling && !m_IsEmoting)
+            if (Input.GetKeyDown(KeyCode.LeftControl) && !m_IsDashing && !m_IsRagdolling && !m_IsEmoting && !m_IsGettingUp)
             {
                 EventManager.Get().ToggleCursor();
             }
-
 
             if (m_RigidBody.velocity.y < 0)
             {
@@ -254,6 +259,16 @@ namespace Game
                     return true;
             }
             return false;
+        }
+        void OnStartedGettingUp()
+        {
+            if(photonView.IsMine)
+                m_IsGettingUp = true;
+        }
+        void OnStoppedGettingUp()
+        {
+            if (photonView.IsMine)
+                m_IsGettingUp = false;
         }
     }
 }
