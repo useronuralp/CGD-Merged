@@ -86,6 +86,7 @@ public class Ragdoll : MonoBehaviourPunCallbacks
     [PunRPC]
     private void DeactivateRagdoll()
     {
+        m_Rigidbody.rotation = Quaternion.Euler(0, m_Hips.transform.rotation.eulerAngles.y, 0);
         EventManager.Get().StopRagdolling();
         m_HipsTransformView.m_SynchronizePosition = false;
         foreach (var collider in m_RagdollColliders)

@@ -68,6 +68,10 @@ namespace Game
                 m_IsInputEnabled = false;
                 m_IsEmoting = true;
             }
+            else if(m_IsGettingUp)
+            {
+                m_IsInputEnabled = false;
+            }
             else
             {
                 if(DoOnce && !m_IsRagdolling && !m_IsDashing)
