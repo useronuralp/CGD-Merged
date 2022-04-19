@@ -3,6 +3,7 @@ using Photon.Realtime;
 using System;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Game
 {
@@ -52,16 +53,21 @@ namespace Game
         [SerializeField]
         private float           m_TimerDuration = 60;
         private float           m_Timer;
-
         private TextMeshProUGUI m_TimerText;
-        private TextMeshProUGUI m_CountdownText; 
+
+        public GameObject       PlayerButtonPrefab;
+        private TextMeshProUGUI m_CountdownText;
+        private GameObject      m_SpectatorText;
+        private GameObject      m_PlayerList;
         private bool            m_HasRoundStarted;
 
         static public int       m_NumberOfInstantitatedPlayers = 0;
         static public int       m_NumberOfInitiallySetupPlayers = 0;
+        private bool            m_IsSpectating = false;
 
         private bool DoOnce = true;
         private bool DoOnce2 = true;
+        private bool DoOnce3 = true;
 
         private bool m_StartCountdown = false; //Meant to be only used by the master client.
         private float m_CountdownTimer = 3;
@@ -82,6 +88,8 @@ namespace Game
             m_FreeLookCamera = GameObject.Find("PlayerCamera").GetComponent<Cinemachine.CinemachineFreeLook>();
             m_FreeLookCamera.m_RecenterToTargetHeading.m_enabled = true;
             EventManager.Get().OnToggleCursor += OnToggleCursor;
+            EventManager.Get().OnStartingSpectating += OnStartingSpectating;
+            EventManager.Get().OnStoppingSpectating += OnStoppingSpectating;
             LockCursor();
             m_NumberOfInstantitatedPlayers = 0;
             m_NumberOfInitiallySetupPlayers = 0;
@@ -94,6 +102,8 @@ namespace Game
             
             m_TimerText = GameObject.Find("UI").transform.Find("Canvas").Find("TimerText").GetComponent<TextMeshProUGUI>();
             m_CountdownText = GameObject.Find("UI").transform.Find("Canvas").Find("Countdown").GetComponent<TextMeshProUGUI>();
+            m_SpectatorText = GameObject.Find("UI").transform.Find("Canvas").Find("SpectatorText").gameObject;
+            m_PlayerList = GameObject.Find("UI").transform.Find("Canvas").Find("PlayerList").gameObject;
             m_CountdownText.text = "3";
             m_CountdownText.gameObject.SetActive(false);
             m_TimerText.text = "2:00";
@@ -120,6 +130,31 @@ namespace Game
         }
         private void Update()
         {
+            if(m_IsSpectating)
+            {
+                
+                if(DoOnce3)
+                {
+                    var content = m_PlayerList.transform.Find("Content");
+                    DoOnce3 = false;
+                    foreach (var player in PhotonNetwork.PlayerList)
+                    {
+                        if (player.IsLocal)
+                            continue;
+                        GameObject newRoomButton = Instantiate(PlayerButtonPrefab, content);
+
+                        newRoomButton.transform.Find("PlayerName").GetComponent<TextMeshProUGUI>().text = player.NickName;
+                        newRoomButton.GetComponent<Button>().onClick.AddListener(delegate { SpectatePlayer(player.NickName); });
+                    }
+                }
+                if(Input.GetKeyDown(KeyCode.M))
+                {
+                    var spectateCamera = GameObject.Find("CutsceneCam2");
+                    var playerCamera = GameObject.Find("PlayerCamera");
+                    playerCamera.GetComponent<Cinemachine.CinemachineFreeLook>().Priority = 0;
+                    spectateCamera.GetComponent<Cinemachine.CinemachineVirtualCamera>().Priority = 1;
+                }
+            }
             if (PhotonNetwork.IsMasterClient)
             {
                 m_LevelSyncInterval -= Time.deltaTime;
@@ -285,7 +320,8 @@ namespace Game
         }
         public void OnPressedReturnToHubButton()
         {
-            PhotonNetwork.LoadLevel(2);
+            if(PhotonNetwork.IsMasterClient)
+                PhotonNetwork.LoadLevel(2);
         }
         public void LockCursor()
         {
@@ -310,6 +346,35 @@ namespace Game
                 m_FreeLookCamera.m_YAxis.m_InputAxisValue = 0;
                 EventManager.Get().DisableInput(SenderType.Standard);
             }
+        }
+        void OnStartingSpectating()
+        {
+            m_IsSpectating = true;
+            m_SpectatorText.SetActive(true);
+            m_PlayerList.SetActive(true);
+            DoOnce3 = true;
+        }
+        void OnStoppingSpectating()
+        {
+            m_IsSpectating = false;
+            m_SpectatorText.SetActive(false);
+            m_PlayerList.SetActive(false);
+            m_FreeLookCamera.LookAt = m_LocalPlayer.transform;
+            m_FreeLookCamera.Follow = m_LocalPlayer.transform;
+        }
+        void SpectatePlayer(string playerToSpectate)
+        {
+            GameObject.Find("Main Camera").GetComponent<Cinemachine.CinemachineBrain>().m_DefaultBlend.m_Time = 0;
+            var spectateCamera = GameObject.Find("CutsceneCam2");
+            var playerCamera = GameObject.Find("PlayerCamera");
+            if (playerCamera.GetComponent<Cinemachine.CinemachineFreeLook>().Priority < 1)
+            {
+                playerCamera.GetComponent<Cinemachine.CinemachineFreeLook>().Priority = 1;
+                spectateCamera.GetComponent<Cinemachine.CinemachineVirtualCamera>().Priority = 0;
+            }
+            var player = GameObject.Find(playerToSpectate);
+            m_FreeLookCamera.LookAt = player.transform;
+            m_FreeLookCamera.Follow = player.transform;
         }
     }
 }

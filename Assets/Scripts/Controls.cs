@@ -19,6 +19,8 @@ namespace Game
         private bool               m_IsEmoting = false;
         private bool               DoOnce = false;
         private bool               m_IsGettingUp = false;
+        private bool               DoOnce2 = true;
+        private bool               m_IsSpectating = false;
 
         private Stamina            m_StaminaScript;
 
@@ -54,6 +56,8 @@ namespace Game
             EventManager.Get().OnNotRagdolling += OnNotRagdolling;
             EventManager.Get().OnStartedGettingUp += OnStartedGettingUp;
             EventManager.Get().OnStoppedGettingUp += OnStoppedGettingUp;
+            EventManager.Get().OnStartingSpectating += OnStartingSpectating;
+            EventManager.Get().OnStoppingSpectating += OnStoppingSpectating;
         }
         void Update()
         {
@@ -115,11 +119,11 @@ namespace Game
                     StartCoroutine(Dive());
                 }
             }
-            if (Input.GetKeyDown(KeyCode.LeftControl) && !m_IsDashing && !m_IsRagdolling && !m_IsEmoting && !m_IsGettingUp)
+            if (Input.GetKeyDown(KeyCode.LeftControl) && !m_IsDashing && !m_IsRagdolling && !m_IsEmoting && !m_IsGettingUp && !m_IsSpectating)
             {
                 EventManager.Get().ToggleCursor();
             }
-
+           
             if (m_RigidBody.velocity.y < 0)
             {
                 m_RigidBody.velocity += (m_FallMultiplier - 1) * Physics.gravity.y * Time.deltaTime * Vector3.up;
@@ -130,6 +134,10 @@ namespace Game
             }
 
             m_Animator.SetBool("isGrounded", IsGrounded());
+
+            if (IsGrounded())
+                DoOnce2 = true;
+
             if(m_RigidBody.velocity.y < 0)
             {
                 m_Animator.SetBool("isAscending", false);
@@ -273,6 +281,27 @@ namespace Game
         {
             if (photonView.IsMine)
                 m_IsGettingUp = false;
+        }
+        private void OnCollisionEnter(Collision collision)
+        {
+            if(DoOnce2)
+            {
+                if(!IsGrounded() && m_RigidBody.velocity.y >= 0)
+                {
+                    m_RigidBody.velocity = new Vector3(m_RigidBody.velocity.x,0, m_RigidBody.velocity.z);
+                    DoOnce2 = false;
+                }
+            }
+        }
+        void OnStartingSpectating()
+        {
+            if(photonView.IsMine)
+                m_IsSpectating = true;
+        }
+        void OnStoppingSpectating()
+        {
+            if (photonView.IsMine)
+                m_IsSpectating = false;
         }
     }
 }

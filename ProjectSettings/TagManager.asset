@@ -9,6 +9,7 @@ TagManager:
   - Runner
   - FinishLine
   - PlayerEyes
+  - DeathBox
   layers:
   - Default
   - TransparentFX

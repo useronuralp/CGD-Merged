@@ -11089,7 +11089,7 @@ MonoBehaviour:
   RoomsPanel: {fileID: 1375124159}
   EnterRoomNamePanel: {fileID: 101197132}
   MaxPlayersPerRoom: 20
-  RoomButtonPrefab: {fileID: 2449405032712789373, guid: ac840feaeca5aae4395239da806375ec, type: 3}
+  RoomButtonPrefab: {fileID: 2449405032712789373, guid: ecfd7bd217f012e4191741bcfdc47688, type: 3}
 --- !u!4 &1338924528
 Transform:
   m_ObjectHideFlags: 0

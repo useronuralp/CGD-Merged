@@ -13,7 +13,7 @@ namespace Game
         private Rigidbody            m_Rigidbody;
 
         [SerializeField]
-        private bool                 m_IsBulldog;
+        private bool                 m_IsBulldog = true;
 
         private Vector3              m_BulldogSpawnPoint;
         private Vector3              m_RunnerSpawnPoint;
@@ -30,7 +30,6 @@ namespace Game
 
         private bool                m_HasCrossedTheFinishLine = false;
 
-        private Animator            m_Animator;
         public void Respawn()
         {
             PlacePlayer(false);
@@ -41,13 +40,13 @@ namespace Game
                 photonView.RPC("SetOutlineColor", RpcTarget.All, new object[] {0.0f, 0.0f, 0.0f, 0.0f});
             if (photonView.IsMine)
                 photonView.RPC("SetNickname", RpcTarget.AllBuffered, PhotonNetwork.NickName);
-            m_Animator = GetComponent<Animator>();
             m_EvenSpawnPoints = new Dictionary<int, int>() { {0,1}, {2,2}, {4,3}, {6,4}, {8,5}, {10,6}, {12,7}, {14,8}, {16,9}, {18,10} };
             m_OddSpawnPoints  = new Dictionary<int, int>() { {1,1}, {3,2}, {5,3}, {7,4}, {9,5}, {11,6}, {13,7}, {15,8}, {17,9}, {19,10} };
             m_Rigidbody = GetComponent<Rigidbody>();
             if (photonView.IsMine)
             {
                 s_LocalPlayerInstance = gameObject;
+                photonView.RPC("ChangePrefabName_RPC", RpcTarget.AllBuffered, PhotonNetwork.NickName);
                 GetComponent<Camera>().StartFollowing();
             }
             if(PhotonNetwork.IsMasterClient)
@@ -56,7 +55,8 @@ namespace Game
         }
         private void Update()
         {
-            //Debug.LogError("B ->" + s_BulldogCount + " R ->" + s_RunnerCount);
+            //if(PhotonNetwork.IsMasterClient)
+            //    Debug.LogError("B -> " + s_BulldogCount + " R -> "  + s_RunnerCount);
         }
         [PunRPC]
         private void SetOutlineColor(object[] data)
@@ -194,7 +194,16 @@ namespace Game
                 }
                 else
                 {
-                    if(PhotonNetwork.IsMasterClient && !m_HasCrossedTheFinishLine && !m_IsBulldog) // If a runner hasn't crossed the line when the round ends, they turn into bulldogs.
+                    // Pre-placement setup to ensure necessary settings are running
+                    var spectateCamera = GameObject.Find("CutsceneCam2");
+                    var playerCamera = GameObject.Find("PlayerCamera");
+                    playerCamera.GetComponent<Cinemachine.CinemachineFreeLook>().Priority = 1;
+                    spectateCamera.GetComponent<Cinemachine.CinemachineVirtualCamera>().Priority = 0;
+                    Cursor.visible = false;
+                    Cursor.lockState = CursorLockMode.Locked;
+                    EventManager.Get().StopSpectating();
+
+                    if (PhotonNetwork.IsMasterClient && !m_HasCrossedTheFinishLine && !m_IsBulldog) // If a runner hasn't crossed the line when the round ends, they turn into bulldogs.
                         photonView.RPC("BecomeBulldogByEndOfRound", RpcTarget.All);
                     if (PhotonNetwork.IsMasterClient)
                         photonView.RPC("PlacePlayer", RpcTarget.All, false);
@@ -227,24 +236,83 @@ namespace Game
         {
             if(m_HasRoundStarted)
             {
-                if(collision.transform.CompareTag("Bulldog") && !m_IsBulldog)
+                if(photonView.IsMine)
                 {
-                    photonView.RPC("BecomeBulldogByCollision", RpcTarget.All);
+                    if(collision.transform.CompareTag("Bulldog") && !m_IsBulldog)
+                    {
+                        BecomeBulldogByCollisionHelper();
+                    }
                 }
             }
         }
         private void OnTriggerEnter(Collider other)
         {
-            if (other.transform.CompareTag("FinishLine") && !m_IsBulldog)
+            if(photonView.IsMine)
             {
-                photonView.RPC("CrossFinishLine", RpcTarget.All);
+                if (other.transform.CompareTag("FinishLine") && !m_IsBulldog)
+                {
+                    photonView.RPC("CrossFinishLine", RpcTarget.All);
+                }
+                else if(other.CompareTag("DeathBox"))
+                {
+                    if(SceneManagerHelper.ActiveSceneBuildIndex == 2)
+                    {
+                        // Spawn out of bounds player in the middle of the map. This part is not too important.
+                        transform.position = new Vector3(0, 5, 0);
+                        m_Rigidbody.velocity = new Vector3(0, 0, 0);
+                    }
+                    else if(SceneManagerHelper.ActiveSceneBuildIndex == 3)
+                    {
+                        if(m_IsBulldog)
+                        {
+                            // TODO: Spawn at the location where this character was 5 seconds ago.
+                            transform.position = new Vector3(0, 5, 0);
+                            m_Rigidbody.velocity = new Vector3(0, 0, 0);
+                        }
+                        else
+                        {
+                            BecomeBulldogByCollisionHelper();
+                            m_Rigidbody.useGravity = false;
+                        }
+                    }
+                }
             }
+        }
+        void BecomeBulldogByCollisionHelper()
+        {
+            photonView.RPC("BecomeBulldogByCollision", RpcTarget.All);
+            // Blend from player camera to the spectator bird-eye view camera.
+            var spectateCamera = GameObject.Find("CutsceneCam2"); 
+            var playerCamera = GameObject.Find("PlayerCamera");
+            GameObject.Find("Main Camera").GetComponent<Cinemachine.CinemachineBrain>().m_DefaultBlend.m_Time = 0.5f;
+            playerCamera.GetComponent<Cinemachine.CinemachineFreeLook>().Priority = 0;
+            spectateCamera.GetComponent<Cinemachine.CinemachineVirtualCamera>().Priority = 1;
+            // Call events 
+            EventManager.Get().StartSpectating();
+            EventManager.Get().DisableInput(SenderType.Standard);
+            // This part could be problematic.
+            StartCoroutine(DelayedSpectatorSpawn());
+        }
+        IEnumerator DelayedSpectatorSpawn() // Takes the character of the player who was just turned into a bulldog and puts it into a location away from the play area.
+        {
+            yield return new WaitForSeconds(1);
+            m_Rigidbody.useGravity = true;
+            Vector3 spectatorZonePos = GameObject.Find("SpectatorZone").transform.position;
+            transform.position = new Vector3(spectatorZonePos.x, spectatorZonePos.y + 10, spectatorZonePos.z);
+            m_Rigidbody.velocity = new Vector3(0, 0, 0);
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
         }
         IEnumerator ReleaseCameraDelayed(float delay)
         {
             yield return new WaitForSeconds(delay);
             Debug.LogError("Released Camera");
             Utility.RaiseEvent(true, EventType.ReleaseCamera, ReceiverGroup.All, EventCaching.DoNotCache, true);
+        }
+        [PunRPC]
+        void ChangePrefabName_RPC(string name)
+        { 
+            gameObject.name = name;
         }
     }
 }

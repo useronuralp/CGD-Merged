@@ -88,7 +88,7 @@ namespace Game
         }
         public override void OnLeftRoom()
         {
-            SceneManager.LoadScene(1);
+            PhotonNetwork.LoadLevel(1);
         }
         public void OnLeaveRoomButtonPressed()
         {
