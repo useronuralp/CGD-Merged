@@ -179,10 +179,10 @@ namespace Game
             }
             if (PhotonNetwork.IsMasterClient)
             {
-                if(Input.GetKeyDown(KeyCode.R))
-                {
-                    RestartRound();
-                }
+                //if(Input.GetKeyDown(KeyCode.R))
+                //{
+                //    RestartRound();
+                //}
                 if(m_NumberOfInstantitatedPlayers == PhotonNetwork.CurrentRoom.PlayerCount) // When all the players are instantiated and ready to be setup / placed in their respective places
                 {
                     if(DoOnce)
@@ -292,10 +292,13 @@ namespace Game
         public void ResetRound()
         {
             m_CountdownText.gameObject.SetActive(true);
+            m_FreeLookCamera.m_XAxis.m_InputAxisName = "Mouse X";
+            m_FreeLookCamera.m_YAxis.m_InputAxisName = "Mouse Y";
             m_Timer = m_TimerDuration;
             m_TimerText.text = "2:00";
             m_FreeLookCamera.m_RecenterToTargetHeading.m_enabled = true;
             m_HasRoundStarted = false;
+            EventManager.Get().DropChatFocus();
         }
         [PunRPC]
         public void ReleaseCamera()
@@ -337,6 +340,7 @@ namespace Game
                 m_FreeLookCamera.m_XAxis.m_InputAxisName = "Mouse X";
                 m_FreeLookCamera.m_YAxis.m_InputAxisName = "Mouse Y";
                 EventManager.Get().EnableInput();
+                EventManager.Get().DropChatFocus();
             }
             else
             {

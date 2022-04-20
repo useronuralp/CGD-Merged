@@ -9,11 +9,10 @@ namespace Game
 {
     public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
     {
-        public static GameObject     s_LocalPlayerInstance; //The static variables are initialized to defualt values whenever a new player joins the game. Therefore, each time a new player joins, they will set the s_localPlayerInstance to "null".
-        private Rigidbody            m_Rigidbody;
+        public static GameObject s_LocalPlayerInstance; //The static variables are initialized to defualt values whenever a new player joins the game. Therefore, each time a new player joins, they will set the s_localPlayerInstance to "null".
+        private Rigidbody m_Rigidbody;
 
-        [SerializeField]
-        private bool                 m_IsBulldog = true;
+        public bool m_IsBulldog { get; set; } = true;
 
         private Vector3              m_BulldogSpawnPoint;
         private Vector3              m_RunnerSpawnPoint;
@@ -86,8 +85,8 @@ namespace Game
         {
             m_IsBulldog = false;
             transform.tag = "Runner";
-            transform.Find("NameCanvas").Find("PlayerName").GetComponent<TextMeshProUGUI>().color = Color.blue;
-            GetComponent<Outline>().OutlineColor = Color.blue;
+            transform.Find("NameCanvas").Find("PlayerName").GetComponent<TextMeshProUGUI>().color = new Color32(54, 147, 169, 255);
+            GetComponent<Outline>().OutlineColor = new Color32(54, 147, 169, 255);
         }
         [PunRPC]
         public void BecomeFirstBulldog()

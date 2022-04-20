@@ -118,6 +118,7 @@ namespace Game
                 m_FreeLookCamera.m_XAxis.m_InputAxisName = "Mouse X";
                 m_FreeLookCamera.m_YAxis.m_InputAxisName = "Mouse Y";
                 EventManager.Get().EnableInput();
+                EventManager.Get().DropChatFocus();
             }
             else
             {
