@@ -26,7 +26,7 @@ public class SendMessage : MonoBehaviour
         else if(Input.GetKeyDown(KeyCode.Return) && !m_InputFieldFocused)
         {
             EventSystem.current.SetSelectedGameObject(m_InputField.gameObject, null);
-            EventManager.Get().ToggleCursor();
+            EventManager.Get().ToggleCursor(true);
             m_InputFieldFocused = true;
         }
     }

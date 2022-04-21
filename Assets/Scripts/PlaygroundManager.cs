@@ -331,8 +331,19 @@ namespace Game
             Cursor.visible = false;
             Cursor.lockState = CursorLockMode.Locked;
         }
-        public void OnToggleCursor()
+        public void OnToggleCursor(bool forceUnlock)
         {
+            if (forceUnlock)
+            {
+                Cursor.visible = true;
+                Cursor.lockState = CursorLockMode.None;
+                m_FreeLookCamera.m_XAxis.m_InputAxisName = "";
+                m_FreeLookCamera.m_YAxis.m_InputAxisName = "";
+                m_FreeLookCamera.m_XAxis.m_InputAxisValue = 0;
+                m_FreeLookCamera.m_YAxis.m_InputAxisValue = 0;
+                EventManager.Get().DisableInput(SenderType.Standard);
+                return;
+            }
             Cursor.visible = !Cursor.visible;
             Cursor.lockState = Cursor.lockState == CursorLockMode.Locked ? CursorLockMode.None : CursorLockMode.Locked;
             if (Cursor.lockState == CursorLockMode.Locked)

@@ -9,7 +9,7 @@ public class EventManager : MonoBehaviourPunCallbacks
     public event Action<Game.SenderType> OnDisableInput;
     public event Action OnEnableInput;
     public event Action OnSyncObstacles;
-    public event Action OnToggleCursor;
+    public event Action<bool> OnToggleCursor;
     public event Action OnRagdolling;
     public event Action OnNotRagdolling;
     public event Action OnStartedGettingUp;
@@ -33,9 +33,9 @@ public class EventManager : MonoBehaviourPunCallbacks
     {
         OnSyncObstacles?.Invoke();
     }
-    public void ToggleCursor()
+    public void ToggleCursor(bool forceUnlock = false)
     {
-        OnToggleCursor?.Invoke();
+        OnToggleCursor?.Invoke(forceUnlock);
     }
     public void StartRagdolling()
     {

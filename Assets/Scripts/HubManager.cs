@@ -19,6 +19,7 @@ namespace Game
         [SerializeField]
         private int             m_MinimumPlayerCount; //Set it in inspector
         private float           m_LevelSyncInterval = 2.0f;
+        private bool            m_LeavingRoom = false;
 
         // TPS camera we use to track the player.
         private Cinemachine.CinemachineFreeLook m_FreeLookCamera;
@@ -60,7 +61,7 @@ namespace Game
                     EventManager.Get().SyncObstacles();
                 }
             }
-            if (PhotonNetwork.CurrentRoom.PlayerCount >= m_MinimumPlayerCount)
+            if (!m_LeavingRoom && PhotonNetwork.CurrentRoom.PlayerCount >= m_MinimumPlayerCount)
             {
                 if(PhotonNetwork.IsMasterClient)
                 {
@@ -71,7 +72,8 @@ namespace Game
             {
                 m_StartGameButton.SetActive(false);
             }
-            m_PlayerCountText.text = PhotonNetwork.CurrentRoom.PlayerCount + "/" + PhotonNetwork.CurrentRoom.MaxPlayers + (" (at least 3 players to start the game)"); //TODO: Null reference when the player leaves the reoom using "Leave Room" button.
+            if(!m_LeavingRoom)
+                m_PlayerCountText.text = PhotonNetwork.CurrentRoom.PlayerCount + "/" + PhotonNetwork.CurrentRoom.MaxPlayers + (" (at least 3 players to start the game)"); //TODO: Null reference when the player leaves the reoom using "Leave Room" button.
         }
         public void OnStartGameButtonPressed()
         {
@@ -88,7 +90,9 @@ namespace Game
         }
         public override void OnLeftRoom()
         {
-            PhotonNetwork.LoadLevel(1);
+            m_LeavingRoom = true;
+            SceneManager.LoadScene(1);
+            PhotonNetwork.JoinLobby();
         }
         public void OnLeaveRoomButtonPressed()
         {
@@ -109,8 +113,19 @@ namespace Game
             Cursor.visible = false;
             Cursor.lockState = CursorLockMode.Locked;
         }
-        public void OnToggleCursor()
+        public void OnToggleCursor(bool forceUnlock)
         {
+            if(forceUnlock)
+            {
+                Cursor.visible = true;
+                Cursor.lockState = CursorLockMode.None;
+                m_FreeLookCamera.m_XAxis.m_InputAxisName = "";
+                m_FreeLookCamera.m_YAxis.m_InputAxisName = "";
+                m_FreeLookCamera.m_XAxis.m_InputAxisValue = 0;
+                m_FreeLookCamera.m_YAxis.m_InputAxisValue = 0;
+                EventManager.Get().DisableInput(SenderType.Standard);
+                return;
+            }
             Cursor.visible = !Cursor.visible;
             Cursor.lockState = Cursor.lockState == CursorLockMode.Locked ? CursorLockMode.None : CursorLockMode.Locked;
             if (Cursor.lockState == CursorLockMode.Locked)
