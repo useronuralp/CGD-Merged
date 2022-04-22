@@ -76691,6 +76691,13 @@ AnimationClip:
   m_HasGenericRootTransform: 0
   m_HasMotionFloatCurves: 0
   m_Events:
+  - time: 0
+    functionName: DisableInput
+    data: 
+    objectReferenceParameter: {fileID: 11500000, guid: fcbdb32558d85794eb912291304b44e1, type: 3}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0
   - time: 1.9333333
     functionName: EnableInput
     data: 

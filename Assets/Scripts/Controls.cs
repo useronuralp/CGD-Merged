@@ -133,9 +133,10 @@ namespace Game
                 m_RigidBody.velocity += (m_BabyJumpMultiplier - 1) * Physics.gravity.y * Time.deltaTime * Vector3.up;
             }
 
-            m_Animator.SetBool("isGrounded", IsGrounded());
+            bool result = IsGrounded();
+            m_Animator.SetBool("isGrounded", result);
 
-            if (IsGrounded())
+            if (result)
                 DoOnce2 = true;
 
             if(m_RigidBody.velocity.y < 0)
@@ -158,7 +159,12 @@ namespace Game
             Debug.DrawRay(new Vector3(transform.position.x, transform.position.y + m_DistToGround, transform.position.z), -Vector3.up, Color.yellow, m_DistToGround + 0.3f);
             return Physics.Raycast(new Vector3(transform.position.x, transform.position.y + m_DistToGround, transform.position.z), -Vector3.up, m_DistToGround + 0.3f, ~LayerMask.GetMask("Ragdoll"));
         }
-
+        public float DistanceToGround()
+        {
+            Ray ray = new Ray(new Vector3(transform.position.x, transform.position.y + m_DistToGround, transform.position.z), -Vector3.up);
+            Physics.Raycast(ray, out RaycastHit hitInfo, ~LayerMask.GetMask("Ragdoll") & LayerMask.GetMask("HitBox"));
+            return hitInfo.distance;
+        }
         [PunRPC]
         public void PlayGesture(string gestureName)
         {
@@ -253,7 +259,10 @@ namespace Game
         {
             yield return new WaitForSeconds(delay);
             if(GameObject.Find("PlayerCamera").GetComponent<Cinemachine.CinemachineFreeLook>().m_XAxis.m_InputAxisName != "" && GameObject.Find("PlayerCamera").GetComponent<Cinemachine.CinemachineFreeLook>().m_YAxis.m_InputAxisName != "")
-                OnEnableInput();
+            {
+                if(!m_IsRagdolling)
+                    OnEnableInput();
+            }
         }
         public void OnRagdolling()
         {
@@ -274,13 +283,12 @@ namespace Game
         }
         void OnStartedGettingUp()
         {
-            if(photonView.IsMine)
-                m_IsGettingUp = true;
+            m_IsGettingUp = true;
+            m_IsInputEnabled = false;
         }
         void OnStoppedGettingUp()
         {
-            if (photonView.IsMine)
-                m_IsGettingUp = false;
+            m_IsGettingUp = false;
         }
         private void OnCollisionEnter(Collision collision)
         {

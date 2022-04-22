@@ -213,7 +213,7 @@ namespace Game
                 {
                     m_Timer = 0.0f;
                     m_HasRoundStarted = false;
-                    if(PhotonNetwork.IsMasterClient)
+                    if (PhotonNetwork.IsMasterClient)
                     {
                         RestartRound();
                     }
@@ -239,6 +239,7 @@ namespace Game
             {
                 Utility.RaiseEvent(true, EventType.RoundStart, ReceiverGroup.All, EventCaching.DoNotCache, true);
                 photonView.RPC("ReleaseCamera", RpcTarget.All);
+                photonView.RPC("LockChat", RpcTarget.All);
             }
         }
         public void StartRoundFirst() //Called by the Timeline Component that can be found in the MainCamera game object in the PlaygroundScene.
@@ -301,6 +302,11 @@ namespace Game
             EventManager.Get().DropChatFocus();
         }
         [PunRPC]
+        public void LockChat()
+        {
+            EventManager.Get().DropChatFocus();
+        }
+        [PunRPC]
         public void ReleaseCamera()
         {
             m_CountdownText.gameObject.SetActive(false);
@@ -333,33 +339,36 @@ namespace Game
         }
         public void OnToggleCursor(bool forceUnlock)
         {
-            if (forceUnlock)
+            if(m_HasRoundStarted)
             {
-                Cursor.visible = true;
-                Cursor.lockState = CursorLockMode.None;
-                m_FreeLookCamera.m_XAxis.m_InputAxisName = "";
-                m_FreeLookCamera.m_YAxis.m_InputAxisName = "";
-                m_FreeLookCamera.m_XAxis.m_InputAxisValue = 0;
-                m_FreeLookCamera.m_YAxis.m_InputAxisValue = 0;
-                EventManager.Get().DisableInput(SenderType.Standard);
-                return;
-            }
-            Cursor.visible = !Cursor.visible;
-            Cursor.lockState = Cursor.lockState == CursorLockMode.Locked ? CursorLockMode.None : CursorLockMode.Locked;
-            if (Cursor.lockState == CursorLockMode.Locked)
-            {
-                m_FreeLookCamera.m_XAxis.m_InputAxisName = "Mouse X";
-                m_FreeLookCamera.m_YAxis.m_InputAxisName = "Mouse Y";
-                EventManager.Get().EnableInput();
-                EventManager.Get().DropChatFocus();
-            }
-            else
-            {
-                m_FreeLookCamera.m_XAxis.m_InputAxisName = "";
-                m_FreeLookCamera.m_YAxis.m_InputAxisName = "";
-                m_FreeLookCamera.m_XAxis.m_InputAxisValue = 0;
-                m_FreeLookCamera.m_YAxis.m_InputAxisValue = 0;
-                EventManager.Get().DisableInput(SenderType.Standard);
+                if (forceUnlock)
+                {
+                    Cursor.visible = true;
+                    Cursor.lockState = CursorLockMode.None;
+                    m_FreeLookCamera.m_XAxis.m_InputAxisName = "";
+                    m_FreeLookCamera.m_YAxis.m_InputAxisName = "";
+                    m_FreeLookCamera.m_XAxis.m_InputAxisValue = 0;
+                    m_FreeLookCamera.m_YAxis.m_InputAxisValue = 0;
+                    EventManager.Get().DisableInput(SenderType.Standard);
+                    return;
+                }
+                Cursor.visible = !Cursor.visible;
+                Cursor.lockState = Cursor.lockState == CursorLockMode.Locked ? CursorLockMode.None : CursorLockMode.Locked;
+                if (Cursor.lockState == CursorLockMode.Locked)
+                {
+                    m_FreeLookCamera.m_XAxis.m_InputAxisName = "Mouse X";
+                    m_FreeLookCamera.m_YAxis.m_InputAxisName = "Mouse Y";
+                    EventManager.Get().EnableInput();
+                    EventManager.Get().DropChatFocus();
+                }
+                else
+                {
+                    m_FreeLookCamera.m_XAxis.m_InputAxisName = "";
+                    m_FreeLookCamera.m_YAxis.m_InputAxisName = "";
+                    m_FreeLookCamera.m_XAxis.m_InputAxisValue = 0;
+                    m_FreeLookCamera.m_YAxis.m_InputAxisValue = 0;
+                    EventManager.Get().DisableInput(SenderType.Standard);
+                }
             }
         }
         void OnStartingSpectating()

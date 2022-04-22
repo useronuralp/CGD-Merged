@@ -71,23 +71,34 @@ public class Ragdoll : MonoBehaviourPunCallbacks
             m_HipsRigidBody.MovePosition(m_Rigidbody.transform.position);
     }
     [PunRPC]
-    private void ActivateRagdoll()
+    private void ActivateRagdoll(Game.SenderType type)
     {
-        m_HipsTransformView.m_SynchronizePosition = true;
-        foreach (var collider in m_RagdollColliders)
+        if(!m_IsInRagdollState)
         {
-            collider.isTrigger = false;
-            collider.gameObject.GetComponent<Rigidbody>().isKinematic = false;
+            if(photonView.IsMine)
+            {
+                EventManager.Get().DisableInput(type);
+                EventManager.Get().StartRagdolling();
+            }
+            m_HipsTransformView.m_SynchronizePosition = true;
+            foreach (var collider in m_RagdollColliders)
+            {
+                collider.isTrigger = false;
+                collider.gameObject.GetComponent<Rigidbody>().isKinematic = false;
+            }
+
+            m_Animator.enabled = false;
+            m_IsInRagdollState = true;
+            ResetRagdollVelocity();
         }
-        m_Animator.enabled = false;
-        m_IsInRagdollState = true;
-        ResetRagdollVelocity();
     }
     [PunRPC]
     private void DeactivateRagdoll()
     {
         m_Rigidbody.rotation = Quaternion.Euler(0, m_Hips.transform.rotation.eulerAngles.y, 0);
-        EventManager.Get().StopRagdolling();
+        m_GetUpTimer = m_GetUpCooldown; // Reset timer for everyone.
+        if(photonView.IsMine)
+            EventManager.Get().StopRagdolling();
         m_HipsTransformView.m_SynchronizePosition = false;
         foreach (var collider in m_RagdollColliders)
         {
@@ -95,7 +106,8 @@ public class Ragdoll : MonoBehaviourPunCallbacks
             collider.gameObject.GetComponent<Rigidbody>().isKinematic = true;
         }
         m_Animator.SetTrigger("GetUp");
-        EventManager.Get().StartedGettingUp();
+        if (photonView.IsMine)
+            EventManager.Get().StartedGettingUp();
         m_Animator.enabled = true;
         m_Rigidbody.velocity = Vector3.zero;
         m_IsInRagdollState = false;
@@ -108,6 +120,14 @@ public class Ragdoll : MonoBehaviourPunCallbacks
             EventManager.Get().EnableInput();
         }
     }
+    public void DisableInput()
+    {
+        if (photonView.IsMine)
+        {
+            EventManager.Get().StartedGettingUp();
+            EventManager.Get().DisableInput(Game.SenderType.Standard);
+        }
+    }
     private void ResetRagdollVelocity()
     {
         foreach (var collider in m_RagdollColliders)
@@ -117,16 +137,23 @@ public class Ragdoll : MonoBehaviourPunCallbacks
     {
         if(!m_IsInRagdollState && photonView.IsMine)
         {
-            EventManager.Get().DisableInput(Game.SenderType.HitByObstacle);
-            EventManager.Get().StartRagdolling();
-            StartCoroutine(DelayedRagdoll(0.1f));
+            photonView.RPC("ActivateRagdoll", RpcTarget.All, Game.SenderType.HitByObstacle);
             m_Rigidbody.AddForceAtPosition(new Vector3(-hitDirection.x, 2, -hitDirection.z) * force, hitPoint, ForceMode.VelocityChange);
         }
     }
-    IEnumerator DelayedRagdoll(float delay)
+    private void OnCollisionEnter(Collision collision)
     {
-        yield return new WaitForSeconds(delay);
-        photonView.RPC("ActivateRagdoll", RpcTarget.All);
+        if(!m_IsInRagdollState && photonView.IsMine)
+        {
+            if(collision.transform.CompareTag("Bulldog") || collision.transform.CompareTag("Runner") || collision.transform.CompareTag("Player") )
+            {
+                if(!GetComponent<Game.Controls>().IsGrounded() && GetComponent<Game.Controls>().DistanceToGround() >= 3.5f)
+                {
+                    photonView.RPC("ActivateRagdoll", RpcTarget.All, Game.SenderType.Standard);
+                    collision.transform.GetComponent<Ragdoll>().photonView.RPC("ActivateRagdoll", RpcTarget.All, Game.SenderType.Standard);
+                }
+            }
+        }
     }
 }
  
