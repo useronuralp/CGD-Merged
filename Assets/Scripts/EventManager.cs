@@ -17,6 +17,7 @@ public class EventManager : MonoBehaviourPunCallbacks
     public event Action OnStartingSpectating;
     public event Action OnStoppingSpectating;
     public event Action OnDroppingChatFocus;
+    public event Action OnStopAllCoroutines;
     private void Awake()
     {
         s_Instance = this;
@@ -64,6 +65,10 @@ public class EventManager : MonoBehaviourPunCallbacks
     public void DropChatFocus()
     {
         OnDroppingChatFocus?.Invoke();
+    }
+    public void Stop_AllCoroutines()
+    {
+        OnStopAllCoroutines?.Invoke();  
     }
     //Singleton getter---------------------
     public static EventManager Get()

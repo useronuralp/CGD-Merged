@@ -27,7 +27,7 @@ namespace Game
         private float m_DashTime = 0.3f;
         private float m_DashSpeed = 7.0f;
 
-        private float m_FallMultiplier = 2.0f;
+        private float m_FallMultiplier = 2.5f;
         private float m_BabyJumpMultiplier = 2.0f;
         private bool m_IsDashing = false;
         private float m_DistToGround;
@@ -58,6 +58,7 @@ namespace Game
             EventManager.Get().OnStoppedGettingUp += OnStoppedGettingUp;
             EventManager.Get().OnStartingSpectating += OnStartingSpectating;
             EventManager.Get().OnStoppingSpectating += OnStoppingSpectating;
+            EventManager.Get().OnStopAllCoroutines += OnStopAllCoroutines;
         }
         void Update()
         {
@@ -157,12 +158,12 @@ namespace Game
         public bool IsGrounded()
         {
             Debug.DrawRay(new Vector3(transform.position.x, transform.position.y + m_DistToGround, transform.position.z), -Vector3.up, Color.yellow, m_DistToGround + 0.3f);
-            return Physics.Raycast(new Vector3(transform.position.x, transform.position.y + m_DistToGround, transform.position.z), -Vector3.up, m_DistToGround + 0.3f, ~LayerMask.GetMask("Ragdoll"));
+            return Physics.Raycast(new Vector3(transform.position.x, transform.position.y + m_DistToGround, transform.position.z), -Vector3.up, m_DistToGround + 0.3f, ~(LayerMask.GetMask("Ragdoll") | LayerMask.GetMask("Ignore Raycast") | LayerMask.GetMask("HitBox")));
         }
         public float DistanceToGround()
         {
             Ray ray = new Ray(new Vector3(transform.position.x, transform.position.y + m_DistToGround, transform.position.z), -Vector3.up);
-            Physics.Raycast(ray, out RaycastHit hitInfo, ~LayerMask.GetMask("Ragdoll") & LayerMask.GetMask("HitBox"));
+            Physics.Raycast(ray, out RaycastHit hitInfo, ~(LayerMask.GetMask("Ragdoll") | LayerMask.GetMask("Ignore Raycast") | LayerMask.GetMask("HitBox")));
             return hitInfo.distance;
         }
         [PunRPC]
@@ -229,7 +230,12 @@ namespace Game
             }
             m_Animator.SetBool("Dive", false);
             m_IsDashing = false;
-            StartCoroutine(EnableInputDelayed(0.2f));
+            if (GameObject.Find("PlayerCamera").GetComponent<Cinemachine.CinemachineFreeLook>().m_XAxis.m_InputAxisName != "" && GameObject.Find("PlayerCamera").GetComponent<Cinemachine.CinemachineFreeLook>().m_YAxis.m_InputAxisName != "")
+            {
+                if (!m_IsRagdolling)
+                    OnEnableInput();
+            }
+            //StartCoroutine(EnableInputDelayed(0.2f));
         }
         private void OnDisableInput(SenderType type)
         {
@@ -254,15 +260,6 @@ namespace Game
         {
             if(photonView.IsMine)
                 m_IsInputEnabled = true;
-        }
-        IEnumerator EnableInputDelayed(float delay)
-        {
-            yield return new WaitForSeconds(delay);
-            if(GameObject.Find("PlayerCamera").GetComponent<Cinemachine.CinemachineFreeLook>().m_XAxis.m_InputAxisName != "" && GameObject.Find("PlayerCamera").GetComponent<Cinemachine.CinemachineFreeLook>().m_YAxis.m_InputAxisName != "")
-            {
-                if(!m_IsRagdolling)
-                    OnEnableInput();
-            }
         }
         public void OnRagdolling()
         {
@@ -310,6 +307,12 @@ namespace Game
         {
             if (photonView.IsMine)
                 m_IsSpectating = false;
+        }
+        void OnStopAllCoroutines()
+        {
+            StopAllCoroutines();
+            m_Animator.SetBool("Dive", false);
+            m_IsDashing = false;
         }
     }
 }

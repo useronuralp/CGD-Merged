@@ -10,6 +10,7 @@ TagManager:
   - FinishLine
   - PlayerEyes
   - DeathBox
+  - Powerup_DoubleJump
   layers:
   - Default
   - TransparentFX

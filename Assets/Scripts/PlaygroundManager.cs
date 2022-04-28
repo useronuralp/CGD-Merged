@@ -1,6 +1,7 @@
 using Photon.Pun;
 using Photon.Realtime;
 using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -46,24 +47,26 @@ namespace Game
     public class PlaygroundManager : MonoBehaviourPunCallbacks, IOnEventCallback
     {
         [SerializeField]
-        private GameObject      m_PlayerPrefab;
-        public static bool      m_AssignFirstBulldog;
-        public static int       m_FirstBulldogID = -1;
-        private GameObject      m_LocalPlayer;
-        [SerializeField]
-        private float           m_TimerDuration = 60;
-        private float           m_Timer;
-        private TextMeshProUGUI m_TimerText;
+        private GameObject       m_PlayerPrefab;
+        public static bool       m_AssignFirstBulldog;
+        public static int        m_FirstBulldogID = -1;
+        private GameObject       m_LocalPlayer;
+        [SerializeField]         
+        private float            m_TimerDuration = 60;
+        private float            m_Timer;
+        private TextMeshProUGUI  m_TimerText;
+                                 
+        public GameObject        PlayerButtonPrefab;
+        private TextMeshProUGUI  m_CountdownText;
+        private GameObject       m_SpectatorText;
+        private GameObject       m_PlayerList;
+        private bool             m_HasRoundStarted;
+                                 
+        static public int        m_NumberOfInstantitatedPlayers = 0;
+        static public int        m_NumberOfInitiallySetupPlayers = 0;
+        private bool             m_IsSpectating = false;
 
-        public GameObject       PlayerButtonPrefab;
-        private TextMeshProUGUI m_CountdownText;
-        private GameObject      m_SpectatorText;
-        private GameObject      m_PlayerList;
-        private bool            m_HasRoundStarted;
-
-        static public int       m_NumberOfInstantitatedPlayers = 0;
-        static public int       m_NumberOfInitiallySetupPlayers = 0;
-        private bool            m_IsSpectating = false;
+        private List<GameObject>     m_PlayerButtons;
 
         private bool DoOnce = true;
         private bool DoOnce2 = true;
@@ -85,6 +88,7 @@ namespace Game
         private Cinemachine.CinemachineFreeLook m_FreeLookCamera;
         void Start()
         {
+            m_PlayerButtons = new List<GameObject>();
             m_FreeLookCamera = GameObject.Find("PlayerCamera").GetComponent<Cinemachine.CinemachineFreeLook>();
             m_FreeLookCamera.m_RecenterToTargetHeading.m_enabled = true;
             EventManager.Get().OnToggleCursor += OnToggleCursor;
@@ -130,22 +134,33 @@ namespace Game
         }
         private void Update()
         {
-            if(m_IsSpectating)
+            if (m_IsSpectating)
             {
-                
                 if(DoOnce3)
                 {
                     var content = m_PlayerList.transform.Find("Content");
                     DoOnce3 = false;
                     foreach (var player in PhotonNetwork.PlayerList)
                     {
-                        if (player.IsLocal)
+                        if (player.IsLocal || GameObject.Find(player.NickName).GetComponent<PlayerManager>().IsSpectating)
                             continue;
-                        GameObject newRoomButton = Instantiate(PlayerButtonPrefab, content);
 
-                        newRoomButton.transform.Find("PlayerName").GetComponent<TextMeshProUGUI>().text = player.NickName;
-                        newRoomButton.GetComponent<Button>().onClick.AddListener(delegate { SpectatePlayer(player.NickName); });
+                        GameObject newPlayerNameButton = Instantiate(PlayerButtonPrefab, content);
+
+                        newPlayerNameButton.transform.Find("PlayerName").GetComponent<TextMeshProUGUI>().text = player.NickName;
+                        newPlayerNameButton.GetComponent<Button>().onClick.AddListener(delegate { SpectatePlayer(player.NickName); });
+                        m_PlayerButtons.Add(newPlayerNameButton);
                     }
+                }
+                else
+                {
+                    //foreach(GameObject obj in m_PlayerButtons)
+                    //{
+                    //    if(GameObject.Find(obj.transform.Find("PlayerName").GetComponent<TextMeshProUGUI>().text).GetComponent<PlayerManager>().IsSpectating)
+                    //    {
+                    //        obj.GetComponent<Button>().interactable = false;
+                    //    }
+                    //}
                 }
                 if(Input.GetKeyDown(KeyCode.M))
                 {
@@ -183,7 +198,15 @@ namespace Game
                 //{
                 //    RestartRound();
                 //}
-                if(m_NumberOfInstantitatedPlayers == PhotonNetwork.CurrentRoom.PlayerCount) // When all the players are instantiated and ready to be setup / placed in their respective places
+                if(m_HasRoundStarted)
+                {
+                    if (PlayerManager.s_CrossedFinishLineCount > 0 && PlayerManager.s_CrossedFinishLineCount == PlayerManager.s_RunnerCount) // Test this might not work.
+                    {
+                        RestartRound();
+                        return;
+                    }
+                }
+                if (m_NumberOfInstantitatedPlayers == PhotonNetwork.CurrentRoom.PlayerCount) // When all the players are instantiated and ready to be setup / placed in their respective places
                 {
                     if(DoOnce)
                     {
@@ -225,6 +248,15 @@ namespace Game
         {
             if(PhotonNetwork.IsMasterClient)
             {
+                if(PlayerManager.s_CrossedFinishLineCount == 1)
+                {
+                    if (PhotonNetwork.IsMasterClient)
+                    {
+                        Utility.RaiseEvent(true, EventType.RunnersWin, ReceiverGroup.All, EventCaching.DoNotCache, true);
+                        PlayerManager.s_CrossedFinishLineCount = 0;
+                    }
+                    return;
+                }
                 photonView.RPC("ResetRound", RpcTarget.All);
                 Utility.RaiseEvent(true, EventType.RoundEnd, ReceiverGroup.All, EventCaching.DoNotCache, true);
                 m_LocalPlayer.GetComponent<PlayerManager>().ResetSpawnNumbering();
@@ -278,6 +310,10 @@ namespace Game
                 else
                     Debug.LogError("BULLDOGS WIN by COLLISION");
             }
+            else if (photonEvent.Code == (byte)EventType.RunnersWin && PhotonNetwork.IsMasterClient)
+            {
+                Debug.LogError("RUNNERS WIN");
+            }
             else if(photonEvent.Code == (byte)EventType.ReleaseCamera)
             {
                 m_FreeLookCamera.m_RecenterToTargetHeading.m_enabled = false;
@@ -299,6 +335,7 @@ namespace Game
             m_TimerText.text = "2:00";
             m_FreeLookCamera.m_RecenterToTargetHeading.m_enabled = true;
             m_HasRoundStarted = false;
+            PlayerManager.s_CrossedFinishLineCount = 0;
             EventManager.Get().DropChatFocus();
         }
         [PunRPC]

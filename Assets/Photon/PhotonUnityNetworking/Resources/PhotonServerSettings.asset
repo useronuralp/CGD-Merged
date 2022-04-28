@@ -91,6 +91,8 @@ MonoBehaviour:
   - ChangePrefabName_RPC
   - SendMessage_RPC
   - LockChat
+  - Powerup
+  - SyncRoundEnd
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1
