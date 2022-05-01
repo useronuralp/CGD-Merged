@@ -7,7 +7,7 @@ public class SendMessage : MonoBehaviour
 {
     private bool m_InputFieldFocused;
     public TMPro.TMP_InputField m_InputField;
-    private string m_Message;
+    private string m_Message = "";
     private void Start()
     {
         EventManager.Get().OnDroppingChatFocus += OnDroppingChatFocus;
@@ -20,6 +20,12 @@ public class SendMessage : MonoBehaviour
             {
                 transform.parent.Find("Scroll View").Find("Viewport").Find("Content").GetComponent<ChatBox>().Send(m_Message);
                 m_InputField.text = "";
+            }
+            else
+            {
+                EventManager.Get().ToggleCursor();
+                DropChatFocus();
+                return;
             }
             m_InputField.ActivateInputField();
         }
@@ -44,10 +50,15 @@ public class SendMessage : MonoBehaviour
     {
         m_Message = message;
     }
-    public void OnDroppingChatFocus()
+    void DropChatFocus()
     {
+        m_InputFieldFocused = false;
         m_InputField.DeactivateInputField();
         EventSystem.current.SetSelectedGameObject(null, null);
         transform.Find("Text Area").Find("Placeholder").GetComponent<TMPro.TextMeshProUGUI>().text = "Type...";
+    }
+    public void OnDroppingChatFocus()
+    {
+        DropChatFocus();
     }
 }
