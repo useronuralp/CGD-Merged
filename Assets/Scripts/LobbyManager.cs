@@ -30,12 +30,7 @@ namespace Game
             _cachedRoomList = new Dictionary<string, RoomInfo>();
         }
         //Lobby Functions----------
-        public void ClearRoomList()
-        {
-            var content = RoomsPanel.transform.Find("Viewport").Find("Content");
-            foreach (Transform roombButton in content)
-                Destroy(roombButton.gameObject);
-        }
+
         public void OnCreateRoomButtonPressed()
         {
             EnterRoomNamePanel.SetActive(true);
@@ -128,6 +123,12 @@ namespace Game
 
                 newRoomButton.GetComponent<Button>().onClick.AddListener(delegate { JoinRoom(newRoomButton.transform); } );
             }
+        }
+        public void ClearRoomList()
+        {
+            var content = RoomsPanel.transform.Find("Viewport").Find("Content");
+            foreach (Transform roombButton in content)
+                Destroy(roombButton.gameObject);
         }
         private void UpdateCachedRoomList(List<RoomInfo> roomList)
         {

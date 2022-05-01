@@ -2,10 +2,13 @@ using Photon.Pun;
 using Photon.Realtime;
 using System;
 using System.Collections.Generic;
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-
+using System.Collections.Specialized;
+using UnityEngine.Playables;
+using UnityEngine.SceneManagement;
 namespace Game
 {
     static class Utility
@@ -38,6 +41,7 @@ namespace Game
         TimeUp,
         InitPlayers,
         ReleaseCamera,
+        StartedSpectating,
     }
     public enum SenderType : int
     {
@@ -57,25 +61,33 @@ namespace Game
         private TextMeshProUGUI  m_TimerText;
                                  
         public GameObject        PlayerButtonPrefab;
+        public GameObject        PlayerScorePrefab;
         private TextMeshProUGUI  m_CountdownText;
         private GameObject       m_SpectatorText;
         private GameObject       m_PlayerList;
         private bool             m_HasRoundStarted;
+        private GameObject       m_ScorePanelContent;
+        private TextMeshProUGUI  m_GameEndText;
                                  
         static public int        m_NumberOfInstantitatedPlayers = 0;
         static public int        m_NumberOfInitiallySetupPlayers = 0;
         private bool             m_IsSpectating = false;
+
+        private List<KeyValuePair<float, string>> m_Players;
 
         private List<GameObject>     m_PlayerButtons;
 
         private bool DoOnce = true;
         private bool DoOnce2 = true;
         private bool DoOnce3 = true;
+        private bool DoOnce4 = true;
 
         private bool m_StartCountdown = false; //Meant to be only used by the master client.
         private float m_CountdownTimer = 3;
 
         private float m_LevelSyncInterval = 2.0f;
+
+        private bool m_HasGameEnded = false;
 
         [SerializeField]
         private Vector3 m_BulldogSpawnPoint = new Vector3(0, 5, 21);
@@ -88,12 +100,16 @@ namespace Game
         private Cinemachine.CinemachineFreeLook m_FreeLookCamera;
         void Start()
         {
+            m_GameEndText = GameObject.Find("UI").transform.Find("Canvas").Find("EndOfGameTimer").GetComponent<TextMeshProUGUI>();
+            m_ScorePanelContent = GameObject.Find("UI").transform.Find("Canvas").Find("ScorePanel").Find("Content").gameObject;
+            m_Players = new List<KeyValuePair<float, string>>();
             m_PlayerButtons = new List<GameObject>();
             m_FreeLookCamera = GameObject.Find("PlayerCamera").GetComponent<Cinemachine.CinemachineFreeLook>();
             m_FreeLookCamera.m_RecenterToTargetHeading.m_enabled = true;
             EventManager.Get().OnToggleCursor += OnToggleCursor;
             EventManager.Get().OnStartingSpectating += OnStartingSpectating;
             EventManager.Get().OnStoppingSpectating += OnStoppingSpectating;
+            EventManager.Get().OnUpdateScores += OnUpdateScores;
             LockCursor();
             m_NumberOfInstantitatedPlayers = 0;
             m_NumberOfInitiallySetupPlayers = 0;
@@ -132,13 +148,37 @@ namespace Game
                 GameObject.Find("UI").transform.Find("Canvas").transform.Find("ReturnToHub").gameObject.SetActive(false);
             }
         }
+
+        public override void OnLeftRoom()
+        {
+            SceneManager.LoadScene(1);
+        }
         private void Update()
         {
+            if(m_HasGameEnded)
+            {
+                if(m_Timer <= 0)
+                {
+                    m_Timer = 0;
+                    if(DoOnce4)
+                    {
+                        DoOnce4 = false;
+                        PhotonNetwork.LeaveRoom();
+                    }
+                }
+                m_Timer -= Time.deltaTime;
+                m_GameEndText.text = "Lobby will shut down in: " + (int)m_Timer;
+            }
             if (m_IsSpectating)
             {
                 if(DoOnce3)
                 {
                     var content = m_PlayerList.transform.Find("Content");
+                    if(m_PlayerButtons.Count > 0)
+                    {
+                        foreach(var button in m_PlayerButtons)
+                            Destroy(button);
+                    }
                     DoOnce3 = false;
                     foreach (var player in PhotonNetwork.PlayerList)
                     {
@@ -152,17 +192,7 @@ namespace Game
                         m_PlayerButtons.Add(newPlayerNameButton);
                     }
                 }
-                else
-                {
-                    //foreach(GameObject obj in m_PlayerButtons)
-                    //{
-                    //    if(GameObject.Find(obj.transform.Find("PlayerName").GetComponent<TextMeshProUGUI>().text).GetComponent<PlayerManager>().IsSpectating)
-                    //    {
-                    //        obj.GetComponent<Button>().interactable = false;
-                    //    }
-                    //}
-                }
-                if(Input.GetKeyDown(KeyCode.M))
+                if(Input.GetKeyDown(KeyCode.M) && !m_HasGameEnded)
                 {
                     var spectateCamera = GameObject.Find("CutsceneCam2");
                     var playerCamera = GameObject.Find("PlayerCamera");
@@ -221,6 +251,7 @@ namespace Game
                 {
                     if(DoOnce2)
                     {
+                        photonView.RPC("UpdateScoresRPC", RpcTarget.All);
                         DoOnce2 = false;
                         Utility.RaiseEvent(true, EventType.PlacePlayers, ReceiverGroup.All, EventCaching.DoNotCache, true);
                     }
@@ -244,17 +275,20 @@ namespace Game
                 m_TimerText.text = TimeSpan.FromSeconds(m_Timer).ToString(@"mm\:ss");
             }
         }
+        [PunRPC]
+        void UpdateScoresRPC()
+        {
+            UpdateScores();
+        }
+
         public void RestartRound() // Meant to be only called by the master client!
         {
             if(PhotonNetwork.IsMasterClient)
             {
                 if(PlayerManager.s_CrossedFinishLineCount == 1)
                 {
-                    if (PhotonNetwork.IsMasterClient)
-                    {
-                        Utility.RaiseEvent(true, EventType.RunnersWin, ReceiverGroup.All, EventCaching.DoNotCache, true);
-                        PlayerManager.s_CrossedFinishLineCount = 0;
-                    }
+                    Utility.RaiseEvent(PlayerManager.s_LatestPlayerWhoCrossedTheline, EventType.RunnersWin, ReceiverGroup.All, EventCaching.DoNotCache, true);
+                    PlayerManager.s_CrossedFinishLineCount = 0;
                     return;
                 }
                 photonView.RPC("ResetRound", RpcTarget.All);
@@ -306,17 +340,61 @@ namespace Game
             else if(photonEvent.Code == (byte)EventType.BulldogsWin && PhotonNetwork.IsMasterClient)
             {
                 if((bool)photonEvent.CustomData)
-                    Debug.LogError("BULLDOGS WIN by END OF ROUND");
+                {
+                    photonView.RPC("EndGame", RpcTarget.All);
+                }
                 else
-                    Debug.LogError("BULLDOGS WIN by COLLISION");
+                {
+                    photonView.RPC("EndGame", RpcTarget.All);
+                }
             }
             else if (photonEvent.Code == (byte)EventType.RunnersWin && PhotonNetwork.IsMasterClient)
             {
-                Debug.LogError("RUNNERS WIN");
+                photonView.RPC("EndGame", RpcTarget.All);
             }
             else if(photonEvent.Code == (byte)EventType.ReleaseCamera)
             {
                 m_FreeLookCamera.m_RecenterToTargetHeading.m_enabled = false;
+            }
+            else if(photonEvent.Code == (byte)EventType.StartedSpectating)
+            {
+                string playerName = (string)photonEvent.CustomData;
+                foreach (var button in m_PlayerButtons)
+                {
+                    if (button.transform.Find("PlayerName").GetComponent<TextMeshProUGUI>().text == playerName)
+                        Destroy(button);
+                }
+            }
+        }
+        [PunRPC]
+        void ShowRanking()
+        {
+            GameObject.Find("GameEndCamera").transform.GetComponent<Cinemachine.CinemachineVirtualCamera>().Priority = 5;
+        }
+        [PunRPC]
+        void StopPlayableDirector()
+        {
+            GameObject.Find("Main Camera").GetComponent<PlayableDirector>().Stop();
+        }
+        public override void OnPlayerLeftRoom(Player other)
+        {
+            if(PhotonNetwork.IsMasterClient)
+            {
+                if(PlayerManager.s_BulldogCount == PhotonNetwork.CurrentRoom.PlayerCount)
+                {
+                    Utility.RaiseEvent(false, EventType.BulldogsWin, ReceiverGroup.All, EventCaching.DoNotCache, true);
+                    photonView.RPC("StopPlayableDirector", RpcTarget.All);
+                }
+                else if(PlayerManager.s_CrossedFinishLineCount == 1)
+                {
+                    Utility.RaiseEvent(false, EventType.RunnersWin, ReceiverGroup.All, EventCaching.DoNotCache, true);
+                    photonView.RPC("StopPlayableDirector", RpcTarget.All);
+                }
+                else if(PlayerManager.s_RunnerCount == PhotonNetwork.CurrentRoom.PlayerCount)
+                {
+                    Utility.RaiseEvent(false, EventType.RunnersWin, ReceiverGroup.All, EventCaching.DoNotCache, true);
+                    photonView.RPC("StopPlayableDirector", RpcTarget.All);
+                }
             }
         }
         // ---------------------------------------------------RPCs-----------------------------------------------------------------
@@ -410,6 +488,7 @@ namespace Game
         }
         void OnStartingSpectating()
         {
+            Utility.RaiseEvent(m_LocalPlayer.GetComponent<PlayerManager>().GetName(), EventType.StartedSpectating, ReceiverGroup.All, EventCaching.DoNotCache, true);
             m_IsSpectating = true;
             m_SpectatorText.SetActive(true);
             m_PlayerList.SetActive(true);
@@ -436,6 +515,107 @@ namespace Game
             var player = GameObject.Find(playerToSpectate);
             m_FreeLookCamera.LookAt = player.transform;
             m_FreeLookCamera.Follow = player.transform;
+        }
+
+        [PunRPC]
+        void EndGame()
+        {
+            m_TimerText.gameObject.SetActive(false);
+            m_GameEndText.gameObject.SetActive(true);
+            m_Timer = 20;
+            m_HasGameEnded = true;
+            EventManager.Get().EndGame();
+            m_IsSpectating = false;
+            m_SpectatorText.SetActive(false);
+            m_PlayerList.SetActive(false);
+            OnToggleCursor(true);
+            m_HasRoundStarted = false;
+
+            if(PhotonNetwork.IsMasterClient)
+            {
+                m_Players.Clear();
+                GameObject[] runners = GameObject.FindGameObjectsWithTag("Runner");
+                GameObject[] bulldogs = GameObject.FindGameObjectsWithTag("Bulldog");
+                foreach(GameObject runn in runners)
+                {
+                    m_Players.Add(new KeyValuePair<float, string>(runn.GetComponent<PlayerManager>().GetScore(), runn.GetComponent<PlayerManager>().GetName()));
+                }
+                foreach (GameObject bull in bulldogs)
+                {
+                    m_Players.Add(new KeyValuePair<float, string>(bull.GetComponent<PlayerManager>().GetScore(), bull.GetComponent<PlayerManager>().GetName()));
+                }
+
+                KeyValuePair<float, string> first = new KeyValuePair<float, string>(-1, String.Empty);
+                KeyValuePair<float, string> second = new KeyValuePair<float, string>(-1, String.Empty);
+                KeyValuePair<float, string> third = new KeyValuePair<float, string>(-1, String.Empty);
+                GameObject stand;
+                GameObject plyr;
+                if(m_Players.Count > 0)
+                {
+                    foreach (KeyValuePair<float, string> player in m_Players)
+                    {
+                        if (player.Key > first.Key)
+                            first = player;
+                    }
+                    stand = GameObject.Find("Stand1");
+                    plyr = GameObject.Find(first.Value);
+                    plyr.GetComponent<PlayerManager>().photonView.RPC("Stand", RpcTarget.All, "FirstPlace", new Vector3(stand.transform.position.x, stand.transform.position.y + 5, stand.transform.position.z), new Vector3(0, 180, 0));
+                    m_Players.Remove(first);
+                }
+                if(m_Players.Count > 0)
+                {
+                    foreach (KeyValuePair<float, string> player in m_Players)
+                    {
+                        if (player.Key > second.Key)
+                            second = player;
+                    }
+                    stand = GameObject.Find("Stand2");
+                    plyr = GameObject.Find(second.Value);
+                    plyr.GetComponent<PlayerManager>().photonView.RPC("Stand", RpcTarget.All, "SecondPlace", new Vector3(stand.transform.position.x, stand.transform.position.y + 5, stand.transform.position.z), new Vector3(0, 180, 0));
+                    m_Players.Remove(second);
+                }
+                if(m_Players.Count > 0)
+                {
+                    foreach (KeyValuePair<float, string> player in m_Players)
+                    {
+                        if (player.Key > third.Key)
+                            third = player;
+                    }
+                    stand = GameObject.Find("Stand3");
+                    plyr = GameObject.Find(third.Value);
+                    plyr.GetComponent<PlayerManager>().photonView.RPC("Stand", RpcTarget.All, "ThirdPlace", new Vector3(stand.transform.position.x, stand.transform.position.y + 5, stand.transform.position.z), new Vector3(0, 180, 0));
+                    m_Players.Remove(third);
+                }
+                photonView.RPC("ShowRanking", RpcTarget.All);
+            }
+        }
+        void UpdateScores()
+        {
+            foreach (Transform score in m_ScorePanelContent.transform)
+                Destroy(score.gameObject);
+
+            m_Players.Clear();
+            GameObject[] runners = GameObject.FindGameObjectsWithTag("Runner");
+            GameObject[] bulldogs = GameObject.FindGameObjectsWithTag("Bulldog");
+            foreach (GameObject runn in runners)
+            {
+                m_Players.Add(new KeyValuePair<float, string>(runn.GetComponent<PlayerManager>().GetScore(), runn.GetComponent<PlayerManager>().GetName()));
+            }
+            foreach (GameObject bull in bulldogs)
+            {
+                m_Players.Add(new KeyValuePair<float, string>(bull.GetComponent<PlayerManager>().GetScore(), bull.GetComponent<PlayerManager>().GetName()));
+            }
+
+            foreach (var info in m_Players)
+            {
+                GameObject newPlayerScore = Instantiate(PlayerScorePrefab, m_ScorePanelContent.transform);
+                newPlayerScore.transform.Find("PlayerNameText").GetComponent<TextMeshProUGUI>().text = info.Value;
+                newPlayerScore.transform.Find("PlayerScoreText").GetComponent<TextMeshProUGUI>().text = info.Key.ToString();
+            }
+        }
+        void OnUpdateScores()
+        {
+            UpdateScores();
         }
     }
 }

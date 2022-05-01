@@ -34,6 +34,13 @@ namespace Game
 
         public bool                 IsSpectating = false;
 
+        static public string        s_LatestPlayerWhoCrossedTheline = "None";
+        private float               m_Score = 0;
+
+        private string              m_PlayerName;
+
+        private Animator            m_Animator;
+
         public enum PowerupType
         {
             DoubleJump,
@@ -44,10 +51,12 @@ namespace Game
         }
         private void Start()
         {
+            m_Animator = GetComponent<Animator>();
             if (SceneManagerHelper.ActiveSceneBuildIndex == 2)
                 photonView.RPC("SetOutlineColor", RpcTarget.All, new object[] {0.0f, 0.0f, 0.0f, 0.0f});
             if (photonView.IsMine)
                 photonView.RPC("SetNickname", RpcTarget.AllBuffered, PhotonNetwork.NickName);
+            EventManager.Get().UpdateScores();
             m_EvenSpawnPoints = new Dictionary<int, int>() { {0,1}, {2,2}, {4,3}, {6,4}, {8,5}, {10,6}, {12,7}, {14,8}, {16,9}, {18,10} };
             m_OddSpawnPoints  = new Dictionary<int, int>() { {1,1}, {3,2}, {5,3}, {7,4}, {9,5}, {11,6}, {13,7}, {15,8}, {17,9}, {19,10} };
             m_Rigidbody = GetComponent<Rigidbody>();
@@ -72,7 +81,8 @@ namespace Game
         [PunRPC]
         private void SetNickname(string name)
         {
-            transform.Find("NameCanvas").Find("PlayerName").GetComponent<TextMeshProUGUI>().text = name;
+            m_PlayerName = name;
+            transform.Find("NameCanvas").Find("PlayerName").GetComponent<TextMeshProUGUI>().text = name + " (0)";
         }
         public void InitialSetup(int bulldogID)
         {
@@ -127,6 +137,15 @@ namespace Game
                 photonView.RPC("SyncBulldogAndRunnerCounts", RpcTarget.All, new int[] { s_BulldogCount, s_RunnerCount });
             }
             SetBulldogParams();
+        }
+        [PunRPC]
+        public void Stand(string ranking, Vector3 position, Vector3 rotation)
+        {
+            if(m_SpectatorSpawnFunc != null)
+                StopCoroutine(m_SpectatorSpawnFunc);
+            transform.position = position;
+            transform.rotation = Quaternion.Euler(rotation);
+            m_Animator.SetTrigger(ranking);
         }
         [PunRPC]
         public void PlacePlayer(bool isFirstRound)
@@ -186,9 +205,10 @@ namespace Game
             s_RunnerCount = countArr[1];
         }
         [PunRPC]
-        public void CrossFinishLine() // Use only on runners, Bulldogs can't cross the finish line
+        public void CrossFinishLine(string nickname) // Use only on runners, Bulldogs can't cross the finish line
         {
             m_HasCrossedTheFinishLine = true;
+            s_LatestPlayerWhoCrossedTheline = nickname; 
             s_CrossedFinishLineCount++;
             if(photonView.IsMine)
             {
@@ -201,6 +221,11 @@ namespace Game
             m_BulldogSpawnPoint = bulldogSpawnPoint;
             m_RunnerSpawnPoint = runnerSpawnPoint;  
             m_SpawnSpacing = spawnSpacing;
+        }
+        [PunRPC]
+        void SyncSpectatingStatus(bool status)
+        {
+            IsSpectating = status;
         }
         public void OnEvent(ExitGames.Client.Photon.EventData photonEvent)
         {
@@ -223,6 +248,8 @@ namespace Game
                     Cursor.visible = false;
                     Cursor.lockState = CursorLockMode.Locked;
                     IsSpectating = false;
+                    if(photonView.IsMine)
+                        photonView.RPC("SyncSpectatingStatus", RpcTarget.All, IsSpectating);
                     EventManager.Get().StopSpectating();
 
                     if (PhotonNetwork.IsMasterClient && !m_HasCrossedTheFinishLine && !m_IsBulldog) // If a runner hasn't crossed the line when the round ends, they turn into bulldogs.
@@ -263,9 +290,17 @@ namespace Game
                     if(collision.transform.CompareTag("Bulldog") && !m_IsBulldog)
                     {
                         BecomeBulldogByCollisionHelper();
+                        collision.transform.GetComponent<PlayerManager>().photonView.RPC("IncreaseScore", RpcTarget.All, 5.0f);
                     }
                 }
             }
+        }
+        [PunRPC]
+        public void IncreaseScore(float amount)
+        {
+            m_Score += amount;
+            transform.Find("NameCanvas").Find("PlayerName").GetComponent<TextMeshProUGUI>().text = name + " (" + m_Score.ToString() + ")";
+            EventManager.Get().UpdateScores();
         }
         private void OnTriggerEnter(Collider other)
         {
@@ -274,7 +309,8 @@ namespace Game
                 if (other.transform.CompareTag("FinishLine") && !m_IsBulldog)
                 {
                     EventManager.Get().DisableInput(SenderType.Standard);
-                    photonView.RPC("CrossFinishLine", RpcTarget.All);
+                    photonView.RPC("CrossFinishLine", RpcTarget.All, PhotonNetwork.NickName);
+                    photonView.RPC("IncreaseScore", RpcTarget.All, 10.0f);
                     if(s_CrossedFinishLineCount < s_RunnerCount)
                         BecomeSpectatorByCrossingFinishLine();
                 }
@@ -323,6 +359,8 @@ namespace Game
         void BecomeBulldogByCollisionHelper()
         {
             IsSpectating = true;
+            if (photonView.IsMine)
+                photonView.RPC("SyncSpectatingStatus", RpcTarget.All, IsSpectating);
             photonView.RPC("BecomeBulldogByCollision", RpcTarget.All);
             // Blend from player camera to the spectator bird-eye view camera.
             var spectateCamera = GameObject.Find("CutsceneCam2"); 
@@ -339,6 +377,8 @@ namespace Game
         void BecomeSpectatorByCrossingFinishLine()
         {
             IsSpectating = true;
+            if (photonView.IsMine)
+                photonView.RPC("SyncSpectatingStatus", RpcTarget.All, IsSpectating);
             var spectateCamera = GameObject.Find("CutsceneCam2");
             var playerCamera = GameObject.Find("PlayerCamera");
             GameObject.Find("Main Camera").GetComponent<Cinemachine.CinemachineBrain>().m_DefaultBlend.m_Time = 0.5f;
@@ -375,6 +415,14 @@ namespace Game
         void ChangePrefabName_RPC(string name)
         { 
             gameObject.name = name;
+        }
+        public float GetScore()
+        {
+            return m_Score;
+        }
+        public string GetName()
+        {
+            return m_PlayerName;
         }
     }
 }

@@ -21,6 +21,8 @@ namespace Game
         private bool               m_IsGettingUp = false;
         private bool               DoOnce2 = true;
         private bool               m_IsSpectating = false;
+        private bool               m_HasGameEnded = false;
+        private GameObject         m_ScorePanel;
 
         private Stamina            m_StaminaScript;
 
@@ -34,6 +36,20 @@ namespace Game
         private string[] m_GestureNames = { "Whatever_Gesture", "Loser", "Taunt", "Pointing_Gesture", "Laughing" };
 
         private Animator m_Animator;
+
+        private void OnDestroy()
+        {
+            EventManager.Get().OnEnableInput -= OnEnableInput;
+            EventManager.Get().OnDisableInput -= OnDisableInput;
+            EventManager.Get().OnRagdolling -= OnRagdolling;
+            EventManager.Get().OnNotRagdolling -= OnNotRagdolling;
+            EventManager.Get().OnStartedGettingUp -= OnStartedGettingUp;
+            EventManager.Get().OnStoppedGettingUp -= OnStoppedGettingUp;
+            EventManager.Get().OnStartingSpectating -= OnStartingSpectating;
+            EventManager.Get().OnStoppingSpectating -= OnStoppingSpectating;
+            EventManager.Get().OnStopAllCoroutines -= OnStopAllCoroutines;
+            EventManager.Get().OnGameEnd -= OnEndGame;
+        }
         
         private void Awake()
         {
@@ -50,6 +66,7 @@ namespace Game
         private void Start()
         {
             m_StaminaScript = GetComponent<Stamina>();
+            m_ScorePanel = GameObject.Find("UI").transform.Find("Canvas").Find("ScorePanel").gameObject;
             EventManager.Get().OnEnableInput += OnEnableInput;
             EventManager.Get().OnDisableInput += OnDisableInput;
             EventManager.Get().OnRagdolling += OnRagdolling;
@@ -59,6 +76,7 @@ namespace Game
             EventManager.Get().OnStartingSpectating += OnStartingSpectating;
             EventManager.Get().OnStoppingSpectating += OnStoppingSpectating;
             EventManager.Get().OnStopAllCoroutines += OnStopAllCoroutines;
+            EventManager.Get().OnGameEnd += OnEndGame;
         }
         void Update()
         {
@@ -87,7 +105,7 @@ namespace Game
                 }
             }
 
-            if (m_IsInputEnabled)
+            if (m_IsInputEnabled && !m_HasGameEnded)
             {
                 if (Input.GetKeyDown(KeyCode.Space) && IsGrounded())
                 {
@@ -113,6 +131,7 @@ namespace Game
                 {
                     photonView.RPC("PlayGesture", RpcTarget.All, "Gesture_Loser");
                 }
+
                 if (Input.GetMouseButtonDown(0) && m_StaminaScript.m_CurrentStamina > 0.0f)
                 {
                     if(photonView.IsMine)
@@ -120,7 +139,17 @@ namespace Game
                     StartCoroutine(Dive());
                 }
             }
-            if (Input.GetKeyDown(KeyCode.LeftControl) && !m_IsDashing && !m_IsRagdolling && !m_IsEmoting && !m_IsGettingUp && !m_IsSpectating)
+            if (Input.GetKey(KeyCode.Tab))
+            {
+                m_ScorePanel.SetActive(true);
+            }
+            else
+            {
+                m_ScorePanel.SetActive(false);
+            }
+
+
+            if (Input.GetKeyDown(KeyCode.LeftControl) && !m_IsDashing && !m_IsRagdolling && !m_IsEmoting && !m_IsGettingUp && !m_IsSpectating && !m_HasGameEnded)
             {
                 EventManager.Get().ToggleCursor();
             }
@@ -313,6 +342,10 @@ namespace Game
             StopAllCoroutines();
             m_Animator.SetBool("Dive", false);
             m_IsDashing = false;
+        }
+        void OnEndGame()
+        {
+            m_HasGameEnded = true;
         }
     }
 }

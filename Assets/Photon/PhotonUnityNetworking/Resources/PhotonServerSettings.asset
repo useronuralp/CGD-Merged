@@ -93,6 +93,16 @@ MonoBehaviour:
   - LockChat
   - Powerup
   - SyncRoundEnd
+  - EndGame
+  - IncreaseScore
+  - StorePlayerCharacter
+  - ShowRanking
+  - MovePosition
+  - Stand
+  - SyncSpectatingStatus
+  - StopTimeline
+  - StopPlayableDirector
+  - UpdateScoresRPC
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

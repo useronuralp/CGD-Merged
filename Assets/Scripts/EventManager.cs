@@ -18,6 +18,8 @@ public class EventManager : MonoBehaviourPunCallbacks
     public event Action OnStoppingSpectating;
     public event Action OnDroppingChatFocus;
     public event Action OnStopAllCoroutines;
+    public event Action OnGameEnd;
+    public event Action OnUpdateScores;
     private void Awake()
     {
         s_Instance = this;
@@ -69,6 +71,14 @@ public class EventManager : MonoBehaviourPunCallbacks
     public void Stop_AllCoroutines()
     {
         OnStopAllCoroutines?.Invoke();  
+    }
+    public void EndGame()
+    {
+        OnGameEnd?.Invoke();
+    }
+    public void UpdateScores()
+    {
+        OnUpdateScores?.Invoke();
     }
     //Singleton getter---------------------
     public static EventManager Get()

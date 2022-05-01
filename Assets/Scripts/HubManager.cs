@@ -5,6 +5,7 @@ using UnityEngine.SceneManagement;
 using Photon.Pun;
 using Photon.Realtime;
 using TMPro;
+using System.Collections.Generic;
 
 namespace Game
 {
@@ -20,15 +21,23 @@ namespace Game
         private int             m_MinimumPlayerCount; //Set it in inspector
         private float           m_LevelSyncInterval = 2.0f;
         private bool            m_LeavingRoom = false;
+        private GameObject      m_ScorePanelContent;
+
+        public GameObject       PlayerScorePrefab;
+
+        private List<KeyValuePair<float, string>> m_Players;
 
         // TPS camera we use to track the player.
         private Cinemachine.CinemachineFreeLook m_FreeLookCamera;
         private void Start()
         {
+            m_Players = new List<KeyValuePair<float, string>>();
+            m_ScorePanelContent = GameObject.Find("UI").transform.Find("Canvas").Find("ScorePanel").Find("Content").gameObject;
             m_FreeLookCamera = GameObject.Find("PlayerCamera").GetComponent<Cinemachine.CinemachineFreeLook>();
             m_FreeLookCamera.m_RecenterToTargetHeading.m_enabled = false;
             PhotonNetwork.CurrentRoom.IsOpen = true;
             EventManager.Get().OnToggleCursor += OnToggleCursor;
+            EventManager.Get().OnUpdateScores += OnUpdateScores;
             LockCursor();
             if (m_PlayerPrefab == null)
             {
@@ -41,6 +50,7 @@ namespace Game
                 {
                     Debug.LogFormat("We are Instantiating LocalPlayer from {0}", SceneManagerHelper.ActiveSceneName);
                     PhotonNetwork.Instantiate(m_PlayerPrefab.name, new Vector3(0f, 5f, 0f), Quaternion.identity, 0);
+                    UpdateScores();
                 }
                 else
                 {
@@ -83,6 +93,7 @@ namespace Game
         public override void OnPlayerEnteredRoom(Player other)
         {
             Debug.LogFormat("OnPlayerEnteredRoom() {0}", other.NickName); // not seen if you're the player connecting
+            UpdateScores();
         }
         public override void OnPlayerLeftRoom(Player other)
         {
@@ -92,7 +103,7 @@ namespace Game
         {
             m_LeavingRoom = true;
             SceneManager.LoadScene(1);
-            PhotonNetwork.JoinLobby();
+            //PhotonNetwork.JoinLobby();
         }
         public void OnLeaveRoomButtonPressed()
         {
@@ -143,6 +154,29 @@ namespace Game
                 m_FreeLookCamera.m_YAxis.m_InputAxisValue = 0;
                 EventManager.Get().DisableInput(SenderType.Standard);
             }
+        }
+        void UpdateScores()
+        {
+            foreach (Transform score in m_ScorePanelContent.transform)
+                Destroy(score.gameObject);
+
+            m_Players.Clear();
+            GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+            foreach (GameObject player in players)
+            {
+                m_Players.Add(new KeyValuePair<float, string>(player.GetComponent<PlayerManager>().GetScore(), player.GetComponent<PlayerManager>().GetName()));
+            }
+
+            foreach (var info in m_Players)
+            {
+                GameObject newPlayerScore = Instantiate(PlayerScorePrefab, m_ScorePanelContent.transform);
+                newPlayerScore.transform.Find("PlayerNameText").GetComponent<TextMeshProUGUI>().text = info.Value;
+                newPlayerScore.transform.Find("PlayerScoreText").GetComponent<TextMeshProUGUI>().text = "0";
+            }
+        }
+        void OnUpdateScores()
+        {
+            UpdateScores();
         }
     }
 }
