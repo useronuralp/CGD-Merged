@@ -358,12 +358,7 @@ namespace Game
             }
             else if(photonEvent.Code == (byte)EventType.StartedSpectating)
             {
-                string playerName = (string)photonEvent.CustomData;
-                foreach (var button in m_PlayerButtons)
-                {
-                    if (button.transform.Find("PlayerName").GetComponent<TextMeshProUGUI>().text == playerName)
-                        Destroy(button);
-                }
+
             }
         }
         [PunRPC]

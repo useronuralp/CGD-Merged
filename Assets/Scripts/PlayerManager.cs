@@ -30,8 +30,6 @@ namespace Game
 
         private bool                m_HasCrossedTheFinishLine = false;
 
-        private Coroutine           m_SpectatorSpawnFunc = null;
-
         public bool                 IsSpectating = false;
 
         static public string        s_LatestPlayerWhoCrossedTheline = "None";
@@ -141,25 +139,17 @@ namespace Game
         [PunRPC]
         public void Stand(string ranking, Vector3 position, Vector3 rotation)
         {
-            if(m_SpectatorSpawnFunc != null)
-                StopCoroutine(m_SpectatorSpawnFunc);
-            transform.position = position;
-            transform.rotation = Quaternion.Euler(rotation);
+            m_Rigidbody.useGravity = true;
+            m_Rigidbody.velocity = new Vector3(0, 0, 0);
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+            transform.SetPositionAndRotation(position, Quaternion.Euler(rotation));
+            m_Rigidbody.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ | RigidbodyConstraints.FreezeRotation;
             m_Animator.SetTrigger(ranking);
         }
         [PunRPC]
         public void PlacePlayer(bool isFirstRound)
         {
-            if(m_SpectatorSpawnFunc != null)
-            {
-                StopCoroutine(m_SpectatorSpawnFunc);
-                m_Rigidbody.useGravity = true;
-                m_Rigidbody.velocity = new Vector3(0, 0, 0);
-                Cursor.visible = false;
-                Cursor.lockState = CursorLockMode.Locked;
-                m_SpectatorSpawnFunc = null;
-            }
-            m_HasCrossedTheFinishLine = false;
             if (m_IsBulldog)
             {
                 //Debug.LogError("Bulldog Count:" + s_BulldogCount);
@@ -193,8 +183,8 @@ namespace Game
                 if(PhotonNetwork.IsMasterClient)
                     Utility.RaiseEvent(true, EventType.BulldogsWin, ReceiverGroup.All, EventCaching.DoNotCache, true);
             }
-
-            if(!isFirstRound)
+            m_HasCrossedTheFinishLine = false;
+            if (!isFirstRound)
                 StartCoroutine(ReleaseCameraDelayed(0.2f));
         }
         [PunRPC]
@@ -207,6 +197,9 @@ namespace Game
         [PunRPC]
         public void CrossFinishLine(string nickname) // Use only on runners, Bulldogs can't cross the finish line
         {
+            if(photonView.IsMine)
+                StartCoroutine(SpawnSmoke());
+
             m_HasCrossedTheFinishLine = true;
             s_LatestPlayerWhoCrossedTheline = nickname; 
             s_CrossedFinishLineCount++;
@@ -243,6 +236,8 @@ namespace Game
                     // Pre-placement setup to ensure necessary settings are set
                     var spectateCamera = GameObject.Find("CutsceneCam2");
                     var playerCamera = GameObject.Find("PlayerCamera");
+                    playerCamera.GetComponent<Cinemachine.CinemachineFreeLook>().LookAt = transform;
+                    playerCamera.GetComponent<Cinemachine.CinemachineFreeLook>().Follow = transform;
                     playerCamera.GetComponent<Cinemachine.CinemachineFreeLook>().Priority = 1;
                     spectateCamera.GetComponent<Cinemachine.CinemachineVirtualCamera>().Priority = 0;
                     Cursor.visible = false;
@@ -285,9 +280,9 @@ namespace Game
         {
             if(m_HasRoundStarted)
             {
-                if(photonView.IsMine)
+                if (photonView.IsMine)
                 {
-                    if(collision.transform.CompareTag("Bulldog") && !m_IsBulldog)
+                    if (collision.transform.CompareTag("Bulldog") && !m_IsBulldog)
                     {
                         BecomeBulldogByCollisionHelper();
                         collision.transform.GetComponent<PlayerManager>().photonView.RPC("IncreaseScore", RpcTarget.All, 5.0f);
@@ -306,8 +301,9 @@ namespace Game
         {
             if(photonView.IsMine)
             {
-                if (other.transform.CompareTag("FinishLine") && !m_IsBulldog)
+                if (other.transform.CompareTag("FinishLine") && !m_IsBulldog && !m_HasCrossedTheFinishLine)
                 {
+                    m_HasCrossedTheFinishLine = true;
                     EventManager.Get().DisableInput(SenderType.Standard);
                     photonView.RPC("CrossFinishLine", RpcTarget.All, PhotonNetwork.NickName);
                     photonView.RPC("IncreaseScore", RpcTarget.All, 10.0f);
@@ -342,7 +338,7 @@ namespace Game
             {
                 if(other.CompareTag("Powerup_DoubleJump"))
                 {
-                    photonView.RPC("Powerup", RpcTarget.All, PowerupType.DoubleJump, PhotonNetwork.NickName);
+                    photonView.RPC("Powerup", RpcTarget.All, PowerupType.DoubleJump, m_PlayerName);
                 }
             }
         }
@@ -358,6 +354,7 @@ namespace Game
         }
         void BecomeBulldogByCollisionHelper()
         {
+            StartCoroutine(SpawnSmoke());
             IsSpectating = true;
             if (photonView.IsMine)
                 photonView.RPC("SyncSpectatingStatus", RpcTarget.All, IsSpectating);
@@ -366,13 +363,14 @@ namespace Game
             var spectateCamera = GameObject.Find("CutsceneCam2"); 
             var playerCamera = GameObject.Find("PlayerCamera");
             GameObject.Find("Main Camera").GetComponent<Cinemachine.CinemachineBrain>().m_DefaultBlend.m_Time = 0.5f;
+            playerCamera.GetComponent<Cinemachine.CinemachineFreeLook>().LookAt = null;
+            playerCamera.GetComponent<Cinemachine.CinemachineFreeLook>().Follow = null;
             playerCamera.GetComponent<Cinemachine.CinemachineFreeLook>().Priority = 0;
             spectateCamera.GetComponent<Cinemachine.CinemachineVirtualCamera>().Priority = 1;
             // Call events 
             EventManager.Get().StartSpectating();
             EventManager.Get().DisableInput(SenderType.Standard);
-            // This part could be problematic.
-            m_SpectatorSpawnFunc = StartCoroutine(DelayedSpectatorSpawn());
+            SpectatorSpawn();
         }
         void BecomeSpectatorByCrossingFinishLine()
         {
@@ -382,18 +380,26 @@ namespace Game
             var spectateCamera = GameObject.Find("CutsceneCam2");
             var playerCamera = GameObject.Find("PlayerCamera");
             GameObject.Find("Main Camera").GetComponent<Cinemachine.CinemachineBrain>().m_DefaultBlend.m_Time = 0.5f;
+            playerCamera.GetComponent<Cinemachine.CinemachineFreeLook>().LookAt = null;
+            playerCamera.GetComponent<Cinemachine.CinemachineFreeLook>().Follow = null;
             playerCamera.GetComponent<Cinemachine.CinemachineFreeLook>().Priority = 0;
             spectateCamera.GetComponent<Cinemachine.CinemachineVirtualCamera>().Priority = 1;
             // Call events 
             EventManager.Get().StartSpectating();
             EventManager.Get().DisableInput(SenderType.Standard);
-            // This part could be problematic.
-            m_SpectatorSpawnFunc = StartCoroutine(DelayedSpectatorSpawn());
+            SpectatorSpawn();
         }
-        IEnumerator DelayedSpectatorSpawn() // Takes the character of the player who was just turned into a bulldog and puts it into a location away from the play area.
-        {
 
-            yield return new WaitForSeconds(0.5f);
+        IEnumerator SpawnSmoke()
+        {
+            // Destroy the particle system after its lifetime duration passes.
+            var sys = PhotonNetwork.Instantiate("DisappearSmoke", new Vector3(transform.position.x, transform.position.y + 0.5f, transform.position.z), transform.rotation);
+            Debug.LogError(sys.GetComponent<ParticleSystem>().main.startLifetimeMultiplier);
+            yield return new WaitForSeconds(sys.GetComponent<ParticleSystem>().main.startLifetimeMultiplier);
+            PhotonNetwork.Destroy(sys);
+        }
+        void SpectatorSpawn() // Takes the character of the player who was just turned into a bulldog and puts it into a location away from the play area.
+        {
             m_Rigidbody.useGravity = true;
             Vector3 spectatorZonePos;
             if (m_IsBulldog)
