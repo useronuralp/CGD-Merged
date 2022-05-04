@@ -32,12 +32,16 @@ namespace Game
 
         public bool                 IsSpectating = false;
 
+        private Material            m_JammoEyesMaterial;
+
         static public string        s_LatestPlayerWhoCrossedTheline = "None";
         private float               m_Score = 0;
 
         private string              m_PlayerName;
 
         private Animator            m_Animator;
+
+        private Dictionary<string, Vector2> m_EyeTypes;
 
         public enum PowerupType
         {
@@ -49,12 +53,20 @@ namespace Game
         }
         private void Start()
         {
+            m_EyeTypes = new Dictionary<string, Vector2>();
+            m_EyeTypes.Add("Default", new Vector2(0.0f, 0.0f));
+            m_EyeTypes.Add("Happy", new Vector2(0.33f, 0.0f));
+            m_EyeTypes.Add("Angry", new Vector2(0.66f, 0.0f));
+            m_EyeTypes.Add("Dead", new Vector2(0.0f, 0.66f));
+            m_EyeTypes.Add("Sad", new Vector2(0.33f, 0.66f));
+            m_JammoEyesMaterial = transform.Find("head_eyes_low").GetComponent<Renderer>().material;
             m_Animator = GetComponent<Animator>();
             if (SceneManagerHelper.ActiveSceneBuildIndex == 2)
                 photonView.RPC("SetOutlineColor", RpcTarget.All, new object[] {0.0f, 0.0f, 0.0f, 0.0f});
             if (photonView.IsMine)
                 photonView.RPC("SetNickname", RpcTarget.AllBuffered, PhotonNetwork.NickName);
             EventManager.Get().UpdateScores();
+            EventManager.Get().OnChangeEyes += OnChangeEyes;
             m_EvenSpawnPoints = new Dictionary<int, int>() { {0,1}, {2,2}, {4,3}, {6,4}, {8,5}, {10,6}, {12,7}, {14,8}, {16,9}, {18,10} };
             m_OddSpawnPoints  = new Dictionary<int, int>() { {1,1}, {3,2}, {5,3}, {7,4}, {9,5}, {11,6}, {13,7}, {15,8}, {17,9}, {19,10} };
             m_Rigidbody = GetComponent<Rigidbody>();
@@ -67,6 +79,10 @@ namespace Game
             if(PhotonNetwork.IsMasterClient)
                 Utility.RaiseEvent(false, EventType.IncreaseInstantiatedPlayerCount, ReceiverGroup.All, EventCaching.DoNotCache, true); // PlaygroundManager catches this.
             
+        }
+        private void OnDestroy()
+        {
+            EventManager.Get().OnChangeEyes -= OnChangeEyes;
         }
         private void Update()
         {          
@@ -95,13 +111,21 @@ namespace Game
             transform.tag = "Bulldog";
             transform.Find("NameCanvas").Find("PlayerName").GetComponent<TextMeshProUGUI>().color = Color.red;
             GetComponent<Outline>().OutlineColor = Color.red;
+            m_JammoEyesMaterial.color = Color.red;
+            m_JammoEyesMaterial.SetColor("_EmissionColor", (Color.red) * 800.0f);
+            m_JammoEyesMaterial.SetTextureOffset("_MainTex", m_EyeTypes["Angry"]);
         }
         private void SetRunnerParams()
         {
+            Color clr = new Color32(54, 147, 169, 255);
             m_IsBulldog = false;
             transform.tag = "Runner";
-            transform.Find("NameCanvas").Find("PlayerName").GetComponent<TextMeshProUGUI>().color = new Color32(54, 147, 169, 255);
-            GetComponent<Outline>().OutlineColor = new Color32(54, 147, 169, 255);
+            transform.Find("NameCanvas").Find("PlayerName").GetComponent<TextMeshProUGUI>().color = clr;
+            GetComponent<Outline>().OutlineColor = clr;
+            m_JammoEyesMaterial.color = clr;
+            m_JammoEyesMaterial.SetColor("_EmissionColor", (clr) * 800.0f);
+            m_JammoEyesMaterial.SetTextureOffset("_MainTex", m_EyeTypes["Default"]);
+
         }
         [PunRPC]
         public void BecomeFirstBulldog()
@@ -429,6 +453,15 @@ namespace Game
         public string GetName()
         {
             return m_PlayerName;
+        }
+        [PunRPC]
+        void ChangeEyes(string type)
+        {
+            m_JammoEyesMaterial.SetTextureOffset("_MainTex", m_EyeTypes[type]);
+        }
+        void OnChangeEyes(string type)
+        {
+            photonView.RPC("ChangeEyes", RpcTarget.All, type);
         }
     }
 }

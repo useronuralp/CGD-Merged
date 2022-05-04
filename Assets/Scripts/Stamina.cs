@@ -13,6 +13,7 @@ public class Stamina : MonoBehaviourPunCallbacks
     private float m_StaminaBarDisappearCooldown = 2.0f;
     private float m_StaminaRechargeTimer;
 
+    private Game.PlayerManager m_PlayerManageScript;
 
     private  Image m_StaminaImage;
     private Image m_StaminaBackground;
@@ -26,6 +27,7 @@ public class Stamina : MonoBehaviourPunCallbacks
     }
     private void Start()
     {
+        m_PlayerManageScript = GetComponent<Game.PlayerManager>();
         m_StaminaBackground.enabled = false;
         m_StaminaImage.enabled = false;
     }
@@ -50,8 +52,17 @@ public class Stamina : MonoBehaviourPunCallbacks
             }
         }
 
-        if (m_StaminaRechargeTimer <= 0) //If the timer is down, recharge the stamina bar.
+        if (m_StaminaRechargeTimer <= 0)
+        {
+            if(m_PlayerManageScript.m_IsBulldog)
+            {
                 RechargeStamina(30.0f);
+            }
+            else
+            {
+                RechargeStamina(20.0f);
+            }
+        }
     }
     void RechargeStamina(float chargeRate)
     {

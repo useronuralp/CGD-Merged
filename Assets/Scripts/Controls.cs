@@ -23,10 +23,14 @@ namespace Game
         private bool               m_IsSpectating = false;
         private bool               m_HasGameEnded = false;
         private GameObject         m_ScorePanel;
+        private bool               m_IsRolling = false;
 
         private Stamina            m_StaminaScript;
 
+        private AudioSource        m_AudioSource;
+        private Dictionary<string, AudioClip> m_EmoteSounds;
         private float m_DashTime = 0.3f;
+        private float m_RollTime = 0.5f;
         private float m_DashSpeed = 7.0f;
 
         private float m_FallMultiplier = 2.5f;
@@ -65,6 +69,13 @@ namespace Game
         }
         private void Start()
         {
+            m_EmoteSounds = new Dictionary<string, AudioClip>();
+            m_EmoteSounds.Add("Gesture_Whatever", Resources.Load<AudioClip>("Audio/Gesture Sounds/Whatever"));
+            m_EmoteSounds.Add("Gesture_Laughing", Resources.Load<AudioClip>("Audio/Gesture Sounds/Laughing"));
+            m_EmoteSounds.Add("Gesture_Loser", Resources.Load<AudioClip>("Audio/Gesture Sounds/Loser"));
+            m_EmoteSounds.Add("Gesture_Taunt", Resources.Load<AudioClip>("Audio/Gesture Sounds/Taunt"));
+            m_EmoteSounds.Add("Gesture_Point", Resources.Load<AudioClip>("Audio/Gesture Sounds/Pointing"));
+            m_AudioSource = GetComponent<AudioSource>();
             m_StaminaScript = GetComponent<Stamina>();
             m_ScorePanel = GameObject.Find("UI").transform.Find("Canvas").Find("ScorePanel").gameObject;
             EventManager.Get().OnEnableInput += OnEnableInput;
@@ -97,7 +108,7 @@ namespace Game
             }
             else
             {
-                if(DoOnce && !m_IsRagdolling && !m_IsDashing)
+                if(DoOnce && !m_IsRagdolling && !m_IsDashing && !m_IsRolling)
                 {
                     DoOnce = false;
                     m_IsInputEnabled = true;
@@ -132,11 +143,30 @@ namespace Game
                     photonView.RPC("PlayGesture", RpcTarget.All, "Gesture_Loser");
                 }
 
-                if (Input.GetMouseButtonDown(0) && m_StaminaScript.m_CurrentStamina > 0.0f)
+                if (Input.GetMouseButtonDown(0))
                 {
-                    if(photonView.IsMine)
-                        m_StaminaScript.ReduceStamina(50);
-                    StartCoroutine(Dive());
+
+                    //if (IsGrounded() && m_StaminaScript.m_CurrentStamina == 100.0f)
+                    //{
+                    //    if (photonView.IsMine)
+                    //        m_StaminaScript.ReduceStamina(100);
+                    //    StartCoroutine(Roll());
+                    //}
+                    if (GetComponent<PlayerManager>().m_IsBulldog && m_StaminaScript.m_CurrentStamina >= 50.0f)
+                    {
+                        StartCoroutine(Dive());
+                        if (photonView.IsMine)
+                            m_StaminaScript.ReduceStamina(50);
+                    }
+                    else
+                    {
+                        if (IsGrounded() && m_StaminaScript.m_CurrentStamina == 100.0f)
+                        {
+                            if (photonView.IsMine)
+                                m_StaminaScript.ReduceStamina(100);
+                            StartCoroutine(Roll());
+                        }
+                    }
                 }
             }
             if (Input.GetKey(KeyCode.Tab))
@@ -149,7 +179,7 @@ namespace Game
             }
 
 
-            if (Input.GetKeyDown(KeyCode.LeftControl) && !m_IsDashing && !m_IsRagdolling && !m_IsEmoting && !m_IsGettingUp && !m_IsSpectating && !m_HasGameEnded)
+            if (Input.GetKeyDown(KeyCode.LeftControl) && !m_IsDashing && !m_IsRagdolling && !m_IsEmoting && !m_IsGettingUp && !m_IsSpectating && !m_HasGameEnded && !m_IsRolling)
             {
                 EventManager.Get().ToggleCursor();
             }
@@ -200,6 +230,7 @@ namespace Game
         {
             m_IsEmoting = true;
             m_Animator.SetTrigger(gestureName);
+            m_AudioSource.PlayOneShot(m_EmoteSounds[gestureName]);
         }
         private void FixedUpdate()
         {
@@ -226,6 +257,10 @@ namespace Game
                 }
             }
             if(m_IsDashing)
+            {
+                m_RigidBody.MovePosition(transform.position + m_DashSpeed * 1.7f * transform.forward * Time.deltaTime);
+            }
+            else if(m_IsRolling)
             {
                 m_RigidBody.MovePosition(transform.position + m_DashSpeed * 1.7f * transform.forward * Time.deltaTime);
             }
@@ -264,7 +299,24 @@ namespace Game
                 if (!m_IsRagdolling)
                     OnEnableInput();
             }
-            //StartCoroutine(EnableInputDelayed(0.2f));
+        }
+        IEnumerator Roll()
+        {
+            float startTime = Time.time;
+            m_IsInputEnabled = false;
+            m_Animator.SetBool("Roll", true);
+            while (Time.time < startTime + m_RollTime)
+            {
+                m_IsRolling = true;
+                yield return null;
+            }
+            m_Animator.SetBool("Roll", false);
+            m_IsRolling = false;
+            if (GameObject.Find("PlayerCamera").GetComponent<Cinemachine.CinemachineFreeLook>().m_XAxis.m_InputAxisName != "" && GameObject.Find("PlayerCamera").GetComponent<Cinemachine.CinemachineFreeLook>().m_YAxis.m_InputAxisName != "")
+            {
+                if (!m_IsRagdolling)
+                    OnEnableInput();
+            }
         }
         private void OnDisableInput(SenderType type)
         {
@@ -278,7 +330,9 @@ namespace Game
 
                     case SenderType.HitByObstacle:
                         m_Animator.SetBool("Dive", false);
+                        m_Animator.SetBool("Roll", false);
                         m_IsDashing = false;
+                        m_IsRolling = false;
                         StopAllCoroutines(); // Dive(), EnableInputDelayed(float delay);
                         m_IsInputEnabled = false;
                         break;
@@ -309,6 +363,7 @@ namespace Game
         }
         void OnStartedGettingUp()
         {
+
             m_IsGettingUp = true;
             m_IsInputEnabled = false;
         }
@@ -341,7 +396,9 @@ namespace Game
         {
             StopAllCoroutines();
             m_Animator.SetBool("Dive", false);
+            m_Animator.SetBool("Roll", false);
             m_IsDashing = false;
+            m_IsRolling = false;
         }
         void OnEndGame()
         {

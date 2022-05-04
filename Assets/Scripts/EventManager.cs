@@ -20,6 +20,7 @@ public class EventManager : MonoBehaviourPunCallbacks
     public event Action OnStopAllCoroutines;
     public event Action OnGameEnd;
     public event Action OnUpdateScores;
+    public event Action<string> OnChangeEyes;
     private void Awake()
     {
         s_Instance = this;
@@ -79,6 +80,10 @@ public class EventManager : MonoBehaviourPunCallbacks
     public void UpdateScores()
     {
         OnUpdateScores?.Invoke();
+    }
+    public void ChangeEyes(string type)
+    {
+        OnChangeEyes?.Invoke(type);
     }
     //Singleton getter---------------------
     public static EventManager Get()

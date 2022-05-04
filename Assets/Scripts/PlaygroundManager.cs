@@ -373,8 +373,8 @@ namespace Game
         }
         public override void OnPlayerLeftRoom(Player other)
         {
-            if(PhotonNetwork.IsMasterClient)
-            {
+            if(PhotonNetwork.IsMasterClient && !m_HasGameEnded)
+            { 
                 if(PlayerManager.s_BulldogCount == PhotonNetwork.CurrentRoom.PlayerCount)
                 {
                     Utility.RaiseEvent(false, EventType.BulldogsWin, ReceiverGroup.All, EventCaching.DoNotCache, true);

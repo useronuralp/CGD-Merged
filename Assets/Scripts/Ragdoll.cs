@@ -13,9 +13,17 @@ public class Ragdoll : MonoBehaviourPunCallbacks
     private Rigidbody m_HipsRigidBody;
     private PhotonTransformView m_HipsTransformView;
 
+    private float m_DistToGround;
+
     private float m_GetUpTimer;
     private float m_GetUpCooldown = 1.0f;
     private List<Collider> m_RagdollColliders;
+
+    private AudioSource m_AudioSource;
+    private List<AudioClip> m_GetHitSounds;
+    private List<AudioClip> m_RagdollSounds;
+
+    private float m_RagdollSoundTimer = 0.5f;
     private void Awake()
     {
         m_RagdollColliders = new List<Collider>();
@@ -35,6 +43,21 @@ public class Ragdoll : MonoBehaviourPunCallbacks
     }
     private void Start()
     {
+        m_DistToGround = transform.GetComponent<Collider>().bounds.extents.y;
+        m_GetHitSounds = new List<AudioClip>();
+        m_RagdollSounds = new List<AudioClip>();    
+        m_GetHitSounds.Add(Resources.Load<AudioClip>("Audio/Collision Sounds/Ah"));
+        m_GetHitSounds.Add(Resources.Load<AudioClip>("Audio/Collision Sounds/B"));
+        m_GetHitSounds.Add(Resources.Load<AudioClip>("Audio/Collision Sounds/bip"));
+        m_GetHitSounds.Add(Resources.Load<AudioClip>("Audio/Collision Sounds/oomph"));
+        m_GetHitSounds.Add(Resources.Load<AudioClip>("Audio/Collision Sounds/ou"));
+        m_GetHitSounds.Add(Resources.Load<AudioClip>("Audio/Collision Sounds/ur"));
+
+        m_RagdollSounds.Add(Resources.Load<AudioClip>("Audio/Ragdolling/Falling"));
+        m_RagdollSounds.Add(Resources.Load<AudioClip>("Audio/Ragdolling/Falling 2"));
+        m_RagdollSounds.Add(Resources.Load<AudioClip>("Audio/Ragdolling/Falling 3"));
+        m_RagdollSounds.Add(Resources.Load<AudioClip>("Audio/Ragdolling/Falling 4"));
+        m_AudioSource = GetComponent<AudioSource>();
         foreach (var collider in m_RagdollColliders)
         {
             if (collider.name.Contains("Hips"))
@@ -50,6 +73,12 @@ public class Ragdoll : MonoBehaviourPunCallbacks
     {
         if(m_IsInRagdollState && photonView.IsMine)
         {
+            m_RagdollSoundTimer -= Time.deltaTime;
+            if(m_RagdollSoundTimer <= 0.0f && !IsGrounded())
+            {
+                m_RagdollSoundTimer = 0.5f;
+                photonView.RPC("PlayRagdollSound", RpcTarget.All, Random.Range(0, 4));
+            }
             if(m_Rigidbody.velocity.magnitude <= 1)
             {
                 m_GetUpTimer -= Time.deltaTime;
@@ -77,6 +106,7 @@ public class Ragdoll : MonoBehaviourPunCallbacks
         {
             if(photonView.IsMine)
             {
+                EventManager.Get().ChangeEyes("Dead");
                 EventManager.Get().DisableInput(type);
                 EventManager.Get().StartRagdolling();
             }
@@ -98,7 +128,10 @@ public class Ragdoll : MonoBehaviourPunCallbacks
         m_Rigidbody.rotation = Quaternion.Euler(0, m_Hips.transform.rotation.eulerAngles.y, 0);
         m_GetUpTimer = m_GetUpCooldown; // Reset timer for everyone.
         if(photonView.IsMine)
+        {
+            EventManager.Get().ChangeEyes("Default");
             EventManager.Get().StopRagdolling();
+        }
         m_HipsTransformView.m_SynchronizePosition = false;
         foreach (var collider in m_RagdollColliders)
         {
@@ -111,6 +144,11 @@ public class Ragdoll : MonoBehaviourPunCallbacks
         m_Animator.enabled = true;
         m_Rigidbody.velocity = Vector3.zero;
         m_IsInRagdollState = false;
+        m_RagdollSoundTimer = 0.5f;
+    }
+    public bool IsGrounded()
+    {
+        return Physics.Raycast(new Vector3(transform.position.x, transform.position.y + m_DistToGround, transform.position.z), -Vector3.up, m_DistToGround + 0.3f, ~(LayerMask.GetMask("Ragdoll") | LayerMask.GetMask("Ignore Raycast") | LayerMask.GetMask("HitBox")));
     }
     public void EnableInput() //To be used by animation events.
     {
@@ -137,9 +175,23 @@ public class Ragdoll : MonoBehaviourPunCallbacks
     {
         if(!m_IsInRagdollState && photonView.IsMine)
         {
+            photonView.RPC("PlayGetHitSound", RpcTarget.All, Random.Range(0, 6));
             photonView.RPC("ActivateRagdoll", RpcTarget.All, Game.SenderType.HitByObstacle);
             m_Rigidbody.AddForceAtPosition(new Vector3(-hitDirection.x, 2, -hitDirection.z) * force, hitPoint, ForceMode.VelocityChange);
         }
+    }
+    [PunRPC]
+    void PlayGetHitSound(int clipIndex)
+    {
+        m_AudioSource.Stop();
+        m_AudioSource.PlayOneShot(m_GetHitSounds[clipIndex]);
+        m_RagdollSoundTimer = 0.5f;
+    }
+    [PunRPC]
+    void PlayRagdollSound(int clipIndex)
+    {
+        m_AudioSource.Stop();
+        m_AudioSource.PlayOneShot(m_RagdollSounds[clipIndex]);
     }
     private void OnCollisionEnter(Collision collision)
     {
@@ -153,6 +205,10 @@ public class Ragdoll : MonoBehaviourPunCallbacks
                     collision.transform.GetComponent<Ragdoll>().photonView.RPC("ActivateRagdoll", RpcTarget.All, Game.SenderType.Standard);
                 }
             }
+        }
+        else if(m_IsInRagdollState)
+        {
+            photonView.RPC("PlayGetHitSound", RpcTarget.All, Random.Range(0, 6));
         }
     }
 }
