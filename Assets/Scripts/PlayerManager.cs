@@ -375,11 +375,25 @@ namespace Game
                 if(other.CompareTag("Powerup_DoubleJump"))
                 {
                     photonView.RPC("Powerup", RpcTarget.All, PowerupType.DoubleJump, m_PlayerName);
-                    //PhotonNetwork.Instantiate("PowerupParticles", other.transform.position, other.transform.rotation);
-                    //var soundSource = PhotonNetwork.Instantiate("SoundSource", other.transform.position, other.transform.rotation);
-                    //PhotonNetwork.Destroy(other.gameObject);
+                    StartCoroutine(SpawnPowerupParticles(other.transform.position, other.transform.rotation));
+                    StartCoroutine(SpawnSoundSource(other.transform.position, other.transform.rotation));
+                    PhotonNetwork.Destroy(other.gameObject);
                 }
             }
+        }
+        IEnumerator SpawnPowerupParticles(Vector3 spawnLocation, Quaternion spawnRotation)
+        {
+            var particles = PhotonNetwork.Instantiate("PowerupParticles", spawnLocation, spawnRotation);
+            yield return new WaitForSeconds(particles.GetComponent<ParticleSystem>().main.startLifetimeMultiplier);
+            PhotonNetwork.Destroy(particles);
+        }
+        IEnumerator SpawnSoundSource(Vector3 spawnLocation, Quaternion spawnRotation)
+        {
+            var soundSource = PhotonNetwork.Instantiate("SoundSource", spawnLocation, spawnRotation);
+            AudioClip clip = Resources.Load<AudioClip>("Audio/Powerup/PowerupCollect");
+            soundSource.GetComponent<AudioSource>().PlayOneShot(clip);
+            yield return new WaitForSeconds(clip.length);
+            PhotonNetwork.Destroy(soundSource);
         }
         [PunRPC]
         public void Powerup(PowerupType type, string name)
