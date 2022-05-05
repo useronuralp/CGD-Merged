@@ -240,7 +240,7 @@ namespace Game
         public float DistanceToGround()
         {
             Ray ray = new Ray(new Vector3(transform.position.x, transform.position.y + m_DistToGround, transform.position.z), -Vector3.up);
-            Physics.Raycast(ray, out RaycastHit hitInfo, ~(LayerMask.GetMask("Ragdoll") | LayerMask.GetMask("Ignore Raycast") | LayerMask.GetMask("HitBox")));
+            Physics.Raycast(ray, out RaycastHit hitInfo);
             return hitInfo.distance;
         }
         [PunRPC]
@@ -420,8 +420,11 @@ namespace Game
         }
         void OnEndGame()
         {
-            m_HasGameEnded = true;
-            m_IsInputEnabled = false;
+            if(photonView.IsMine)
+            {
+                m_HasGameEnded = true;
+                m_IsInputEnabled = false;
+            }
         }
     }
 }

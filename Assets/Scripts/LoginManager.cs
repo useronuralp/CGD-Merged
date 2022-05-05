@@ -55,9 +55,10 @@ namespace Game
         //------------- Callbacks------------------------------
         public override void OnConnectedToMaster()
         {
-            //Debug.Log("Connected to MASTER server");
-            SceneManager.LoadScene(1); //This loading needs no synchronization so I am not using PhotonNetwork.LoadLevel() here.
-            PhotonNetwork.JoinLobby();
+            GameObject.Find("Canvas").transform.Find("BlackScreen").GetComponent<Animator>().SetTrigger("FadeOutLogin");
+            Debug.Log("Connected to MASTER server");
+            //SceneManager.LoadScene(1); //This loading needs no synchronization so I am not using PhotonNetwork.LoadLevel() here.
+            //PhotonNetwork.JoinLobby();
         }
         public override void OnJoinedLobby()
         {

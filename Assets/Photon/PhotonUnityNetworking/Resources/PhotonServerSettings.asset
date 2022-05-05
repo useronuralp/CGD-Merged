@@ -107,6 +107,8 @@ MonoBehaviour:
   - ChangeEyes
   - PlayRagdollSound
   - EndGame_RPC
+  - DeactivateRagdoll_EndGame
+  - DeactivateRagdoll_Forced
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

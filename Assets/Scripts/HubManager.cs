@@ -101,12 +101,11 @@ namespace Game
         }
         public override void OnLeftRoom()
         {
-            m_LeavingRoom = true;
-            SceneManager.LoadScene(1);
-            //PhotonNetwork.JoinLobby();
+            PhotonNetwork.LoadLevel(1);
         }
         public void OnLeaveRoomButtonPressed()
         {
+            m_LeavingRoom = true;
             PhotonNetwork.LeaveRoom();
         }
         public override void OnDisconnected(DisconnectCause cause)

@@ -104,7 +104,6 @@ namespace Game
         public override void OnConnectedToMaster()
         {
             Debug.Log("Connected to MASTER server");
-            SceneManager.LoadScene(1); //This loading needs no synchronization so I am not using PhotonNetwork.LoadLevel() here.
             PhotonNetwork.JoinLobby();
         }
         public override void OnDisconnected(DisconnectCause cause)
@@ -129,9 +128,10 @@ namespace Game
             Debug.Log("Connected to a GAME server. OnJoinedRoom() Called");
             if (PhotonNetwork.CurrentRoom.PlayerCount == 1) //Load the level only if there is one player in the room. If there is more than one player, they will automatically get synced by Photon.
             {
-                PhotonNetwork.LoadLevel(2);
+                GameObject.Find("Canvas").transform.Find("BlackScreen").GetComponent<Animator>().SetTrigger("FadeOutLobby");
             }
         }
+
         public override void OnRoomListUpdate(List<RoomInfo> roomList)
         {
             var content = RoomsPanel.transform.Find("Viewport").Find("Content");

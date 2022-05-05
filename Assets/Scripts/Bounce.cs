@@ -12,7 +12,7 @@ public class Bounce : MonoBehaviour
             if (collision.gameObject.CompareTag("Player"))
             {
                 Vector3 hitDir = contact.normal;
-                collision.gameObject.GetComponent<Ragdoll>().Bounce(hitDir, contact.point, bounceForce);
+                collision.gameObject.GetComponent<Game.Ragdoll>().Bounce(hitDir, contact.point, bounceForce);
                 return;
             }
         }

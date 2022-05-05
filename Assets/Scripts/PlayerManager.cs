@@ -462,7 +462,6 @@ namespace Game
         {
             // Destroy the particle system after its lifetime duration passes.
             var sys = PhotonNetwork.Instantiate("DisappearSmoke", new Vector3(transform.position.x, transform.position.y + 0.5f, transform.position.z), transform.rotation);
-            Debug.LogError(sys.GetComponent<ParticleSystem>().main.startLifetimeMultiplier);
             yield return new WaitForSeconds(sys.GetComponent<ParticleSystem>().main.startLifetimeMultiplier);
             PhotonNetwork.Destroy(sys);
         }

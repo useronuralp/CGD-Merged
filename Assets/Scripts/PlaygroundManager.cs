@@ -65,7 +65,7 @@ namespace Game
         private TextMeshProUGUI  m_CountdownText;
         private GameObject       m_SpectatorText;
         private GameObject       m_PlayerList;
-        private bool             m_HasRoundStarted;
+        static public bool       s_HasRoundStarted;
         private GameObject       m_ScorePanelContent;
         private TextMeshProUGUI  m_GameEndText;
 
@@ -229,7 +229,7 @@ namespace Game
                 //{
                 //    RestartRound();
                 //}
-                if(m_HasRoundStarted)
+                if(s_HasRoundStarted)
                 {
                     if (PlayerManager.s_CrossedFinishLineCount > 0 && PlayerManager.s_CrossedFinishLineCount == PlayerManager.s_RunnerCount) // Test this might not work.
                     {
@@ -258,7 +258,7 @@ namespace Game
                     }
                 }
             }
-            if(m_HasRoundStarted)
+            if(s_HasRoundStarted)
             {
                 if(m_Timer > 0.0f)
                 {
@@ -267,7 +267,7 @@ namespace Game
                 else
                 {
                     m_Timer = 0.0f;
-                    m_HasRoundStarted = false;
+                    s_HasRoundStarted = false;
                     if (PhotonNetwork.IsMasterClient)
                     {
                         RestartRound();
@@ -326,7 +326,7 @@ namespace Game
             if (photonEvent.Code == (byte)EventType.RoundStart)
             {
                 m_FreeLookCamera.m_RecenterToTargetHeading.m_enabled = false;
-                m_HasRoundStarted = true;
+                s_HasRoundStarted = true;
             }
             else if (photonEvent.Code == (byte)EventType.IncreaseInstantiatedPlayerCount && PhotonNetwork.IsMasterClient)
             {
@@ -338,11 +338,11 @@ namespace Game
                 m_NumberOfInitiallySetupPlayers++;
                 photonView.RPC("IncreaseInitiallySetupPlayerCount", RpcTarget.All, m_NumberOfInitiallySetupPlayers);
             }
-            else if(photonEvent.Code == (byte)EventType.BulldogsWin)
+            else if(photonEvent.Code == (byte)EventType.BulldogsWin && PhotonNetwork.IsMasterClient)
             {
                 photonView.RPC("EndGame", RpcTarget.All);
             }
-            else if (photonEvent.Code == (byte)EventType.RunnersWin)
+            else if (photonEvent.Code == (byte)EventType.RunnersWin && PhotonNetwork.IsMasterClient)
             {
                 photonView.RPC("EndGame", RpcTarget.All);
             }
@@ -401,7 +401,7 @@ namespace Game
             m_Timer = m_TimerDuration;
             m_TimerText.text = "2:00";
             m_FreeLookCamera.m_RecenterToTargetHeading.m_enabled = true;
-            m_HasRoundStarted = false;
+            s_HasRoundStarted = false;
             PlayerManager.s_CrossedFinishLineCount = 0;
             EventManager.Get().DropChatFocus();
         }
@@ -443,7 +443,7 @@ namespace Game
         }
         public void OnToggleCursor(bool forceUnlock)
         {
-            if(m_HasRoundStarted)
+            if(s_HasRoundStarted)
             {
                 if (forceUnlock)
                 {
@@ -526,7 +526,7 @@ namespace Game
             m_FreeLookCamera.m_YAxis.m_InputAxisValue = 0;
             EventManager.Get().DisableInput(SenderType.Standard);
 
-            m_HasRoundStarted = false;
+            s_HasRoundStarted = false;
 
             if(PhotonNetwork.IsMasterClient)
             {
