@@ -421,6 +421,7 @@ namespace Game
         void OnEndGame()
         {
             m_HasGameEnded = true;
+            m_IsInputEnabled = false;
         }
     }
 }

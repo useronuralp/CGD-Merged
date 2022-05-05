@@ -16,6 +16,9 @@ namespace Game
         private GameObject RoomsPanel;
         [SerializeField]
         private GameObject EnterRoomNamePanel;
+        private GameObject m_Camera;
+        private Animator m_CameraAnimator;
+        private bool m_IsCameraMoved = false;
 
         [SerializeField]
         private byte MaxPlayersPerRoom = 20;
@@ -29,14 +32,23 @@ namespace Game
         {
             _cachedRoomList = new Dictionary<string, RoomInfo>();
         }
+        private void Start()
+        {
+            m_Camera = GameObject.Find("Main Camera");
+            m_CameraAnimator = m_Camera.GetComponent<Animator>();
+        }
         //Lobby Functions----------
 
         public void OnCreateRoomButtonPressed()
         {
             EnterRoomNamePanel.SetActive(true);
             RoomsPanel.SetActive(false);
-            LobbyPanel.SetActive(false);
             EnterRoomNamePanel.transform.Find("InputField").GetComponent<TMP_InputField>().text = PhotonNetwork.NickName + "'s Game";
+            if(!m_IsCameraMoved)
+            {
+                m_IsCameraMoved = true;
+                m_CameraAnimator.SetTrigger("MoveRight");
+            }
         }
         public void OnRoomNameEntered(string name)
         {
@@ -45,7 +57,7 @@ namespace Game
         public void OnCreateButtonPressed()
         {
             RoomsPanel.SetActive(false);
-            LobbyPanel.SetActive(false);
+            //LobbyPanel.SetActive(false);
             if (_roomName != string.Empty)
                 PhotonNetwork.CreateRoom(_roomName, new RoomOptions { MaxPlayers = MaxPlayersPerRoom, IsVisible = true}); //Creates a room AND joins it.
             else
@@ -54,20 +66,34 @@ namespace Game
         public void OnJoinRoomButtonPressed()
         {
             RoomsPanel.SetActive(true);
-            LobbyPanel.SetActive(false);
             EnterRoomNamePanel.SetActive(false);
+            if (!m_IsCameraMoved)
+            {
+                m_IsCameraMoved = true;
+                m_CameraAnimator.SetTrigger("MoveRight");
+            }
         }
         public void OnRoomListBackButtonPressed()
         {
             LobbyPanel.SetActive(true);
             RoomsPanel.SetActive(false);
             EnterRoomNamePanel.SetActive(false);
+            if (m_IsCameraMoved)
+            {
+                m_IsCameraMoved = false;
+                m_CameraAnimator.SetTrigger("MoveBack");
+            }
         }
         public void OnEnterRoomNameBackButtonPressed()
         {
             LobbyPanel.SetActive(true);
             RoomsPanel.SetActive(false);
             EnterRoomNamePanel.SetActive(false);
+            if (m_IsCameraMoved)
+            {
+                m_IsCameraMoved = false;
+                m_CameraAnimator.SetTrigger("MoveBack");
+            }
         }
         public void JoinRoom(Transform button)
         {

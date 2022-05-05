@@ -83,6 +83,10 @@ namespace Game
         private void OnDestroy()
         {
             EventManager.Get().OnChangeEyes -= OnChangeEyes;
+            if(m_HasCrossedTheFinishLine)
+            {
+                s_CrossedFinishLineCount--;
+            }
         }
         private void Update()
         {          
@@ -176,7 +180,6 @@ namespace Game
         {
             if (m_IsBulldog)
             {
-                //Debug.LogError("Bulldog Count:" + s_BulldogCount);
                 if(s_BulldogCount % 2 == 0)
                     transform.position = new Vector3(m_BulldogSpawnPoint.x + m_EvenSpawnPoints[s_BulldogCount] * m_SpawnSpacing, m_BulldogSpawnPoint.y, m_BulldogSpawnPoint.z);
                 else
@@ -186,7 +189,6 @@ namespace Game
             }
             else
             {
-                //Debug.LogError("Runner Count:" + s_RunnerCount);
                 if (s_RunnerCount % 2 == 0)
                     transform.position = new Vector3(m_RunnerSpawnPoint.x + m_EvenSpawnPoints[s_RunnerCount] * m_SpawnSpacing, m_RunnerSpawnPoint.y, m_RunnerSpawnPoint.z);
                 else
@@ -214,7 +216,6 @@ namespace Game
         [PunRPC]
         public void SyncBulldogAndRunnerCounts(int[] countArr)
         {
-            //Debug.LogError("Sync runners and bulldog counts: " + "R: " + s_RunnerCount + " B: " + s_BulldogCount);
             s_BulldogCount = countArr[0];
             s_RunnerCount = countArr[1];
         }
@@ -229,7 +230,7 @@ namespace Game
             s_CrossedFinishLineCount++;
             if(photonView.IsMine)
             {
-                EventManager.Get().Stop_AllCoroutines();
+                EventManager.Get().StopAllCoroutines_InControls();
             }
         }
         [PunRPC]
@@ -331,9 +332,9 @@ namespace Game
                     EventManager.Get().DisableInput(SenderType.Standard);
                     photonView.RPC("CrossFinishLine", RpcTarget.All, PhotonNetwork.NickName);
                     photonView.RPC("IncreaseScore", RpcTarget.All, 10.0f);
-                    if(s_CrossedFinishLineCount < s_RunnerCount)
+                    if(s_CrossedFinishLineCount < s_RunnerCount) // Current crosser not being the last person to cross the line
                         BecomeSpectatorByCrossingFinishLine();
-                    else if(s_CrossedFinishLineCount == s_RunnerCount)
+                    else if(s_CrossedFinishLineCount == s_RunnerCount) // Current crosser being the last person to cross the line
                     {
                         var playerCamera = GameObject.Find("PlayerCamera");
                         playerCamera.GetComponent<Cinemachine.CinemachineFreeLook>().LookAt = null;
@@ -412,18 +413,32 @@ namespace Game
             if (photonView.IsMine)
                 photonView.RPC("SyncSpectatingStatus", RpcTarget.All, IsSpectating);
             photonView.RPC("BecomeBulldogByCollision", RpcTarget.All);
-            // Blend from player camera to the spectator bird-eye view camera.
-            var spectateCamera = GameObject.Find("CutsceneCam2"); 
-            var playerCamera = GameObject.Find("PlayerCamera");
-            GameObject.Find("Main Camera").GetComponent<Cinemachine.CinemachineBrain>().m_DefaultBlend.m_Time = 0.5f;
-            playerCamera.GetComponent<Cinemachine.CinemachineFreeLook>().LookAt = null;
-            playerCamera.GetComponent<Cinemachine.CinemachineFreeLook>().Follow = null;
-            playerCamera.GetComponent<Cinemachine.CinemachineFreeLook>().Priority = 0;
-            spectateCamera.GetComponent<Cinemachine.CinemachineVirtualCamera>().Priority = 1;
-            // Call events 
-            EventManager.Get().StartSpectating();
-            EventManager.Get().DisableInput(SenderType.Standard);
-            SpectatorSpawn();
+            if (s_CrossedFinishLineCount == s_RunnerCount)
+            {
+                var playerCamera = GameObject.Find("PlayerCamera");
+                playerCamera.GetComponent<Cinemachine.CinemachineFreeLook>().LookAt = null;
+                playerCamera.GetComponent<Cinemachine.CinemachineFreeLook>().Follow = null;
+                if (photonView.IsMine)
+                    EventManager.Get().DisableInput(SenderType.Standard);
+                SpectatorSpawn();
+                Cursor.visible = false;
+                Cursor.lockState = CursorLockMode.Locked;
+            }
+            else
+            {
+                // Blend from player camera to the spectator bird-eye view camera.
+                var spectateCamera = GameObject.Find("CutsceneCam2"); 
+                var playerCamera = GameObject.Find("PlayerCamera");
+                GameObject.Find("Main Camera").GetComponent<Cinemachine.CinemachineBrain>().m_DefaultBlend.m_Time = 0.5f;
+                playerCamera.GetComponent<Cinemachine.CinemachineFreeLook>().LookAt = null;
+                playerCamera.GetComponent<Cinemachine.CinemachineFreeLook>().Follow = null;
+                playerCamera.GetComponent<Cinemachine.CinemachineFreeLook>().Priority = 0;
+                spectateCamera.GetComponent<Cinemachine.CinemachineVirtualCamera>().Priority = 1;
+                // Call events 
+                EventManager.Get().StartSpectating();
+                EventManager.Get().DisableInput(SenderType.Standard);
+                SpectatorSpawn();
+            }
         }
         void BecomeSpectatorByCrossingFinishLine()
         {

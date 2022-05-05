@@ -69,8 +69,6 @@ namespace Game
         private GameObject       m_ScorePanelContent;
         private TextMeshProUGUI  m_GameEndText;
 
-        private GameObject       m_EndScreen;
-                                 
         static public int        m_NumberOfInstantitatedPlayers = 0;
         static public int        m_NumberOfInitiallySetupPlayers = 0;
         private bool             m_IsSpectating = false;
@@ -102,7 +100,6 @@ namespace Game
         private Cinemachine.CinemachineFreeLook m_FreeLookCamera;
         void Start()
         {
-            m_EndScreen = GameObject.Find("UI").transform.Find("Canvas").Find("EndScreen").gameObject;
             m_GameEndText = GameObject.Find("UI").transform.Find("Canvas").Find("EndOfGameTimer").GetComponent<TextMeshProUGUI>();
             m_ScorePanelContent = GameObject.Find("UI").transform.Find("Canvas").Find("ScorePanel").Find("Content").gameObject;
             m_Players = new List<KeyValuePair<float, string>>();
@@ -343,15 +340,11 @@ namespace Game
             }
             else if(photonEvent.Code == (byte)EventType.BulldogsWin)
             {
-                m_EndScreen.SetActive(true);
-                m_EndScreen.transform.Find("Text").GetComponent<TextMeshProUGUI>().text = "Bulldogs Win";
-                //photonView.RPC("EndGame", RpcTarget.All);
+                photonView.RPC("EndGame", RpcTarget.All);
             }
             else if (photonEvent.Code == (byte)EventType.RunnersWin)
             {
-                m_EndScreen.SetActive(true);
-                m_EndScreen.transform.Find("Text").GetComponent<TextMeshProUGUI>().text = "Runners Win";
-                //photonView.RPC("EndGame", RpcTarget.All);
+                photonView.RPC("EndGame", RpcTarget.All);
             }
             else if(photonEvent.Code == (byte)EventType.ReleaseCamera)
             {
@@ -515,7 +508,7 @@ namespace Game
         [PunRPC]
         void EndGame()
         {
-            m_EndScreen.SetActive(false);
+            StopAllCoroutines();
             m_TimerText.gameObject.SetActive(false);
             m_GameEndText.gameObject.SetActive(true);
             m_Timer = 20;
@@ -524,7 +517,15 @@ namespace Game
             m_IsSpectating = false;
             m_SpectatorText.SetActive(false);
             m_PlayerList.SetActive(false);
-            OnToggleCursor(true);
+
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+            m_FreeLookCamera.m_XAxis.m_InputAxisName = "";
+            m_FreeLookCamera.m_YAxis.m_InputAxisName = "";
+            m_FreeLookCamera.m_XAxis.m_InputAxisValue = 0;
+            m_FreeLookCamera.m_YAxis.m_InputAxisValue = 0;
+            EventManager.Get().DisableInput(SenderType.Standard);
+
             m_HasRoundStarted = false;
 
             if(PhotonNetwork.IsMasterClient)

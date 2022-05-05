@@ -70,7 +70,7 @@ public class EventManager : MonoBehaviourPunCallbacks
     {
         OnDroppingChatFocus?.Invoke();
     }
-    public void Stop_AllCoroutines()
+    public void StopAllCoroutines_InControls()
     {
         OnStopAllCoroutines?.Invoke();  
     }
