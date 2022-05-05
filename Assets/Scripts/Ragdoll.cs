@@ -148,14 +148,27 @@ public class Ragdoll : MonoBehaviourPunCallbacks
     }
     public bool IsGrounded()
     {
-        return Physics.Raycast(new Vector3(transform.position.x, transform.position.y + m_DistToGround, transform.position.z), -Vector3.up, m_DistToGround + 0.3f, ~(LayerMask.GetMask("Ragdoll") | LayerMask.GetMask("Ignore Raycast") | LayerMask.GetMask("HitBox")));
+        Vector3 center = new Vector3(transform.position.x, transform.position.y + m_DistToGround, transform.position.z);
+        Vector3 XPlus = new Vector3(transform.position.x + 0.2f, transform.position.y + m_DistToGround, transform.position.z);
+        Vector3 XMinus = new Vector3(transform.position.x - 0.2f, transform.position.y + m_DistToGround, transform.position.z);
+        Vector3 ZPlus = new Vector3(transform.position.x, transform.position.y + m_DistToGround, transform.position.z + 0.2f);
+        Vector3 ZMinus = new Vector3(transform.position.x, transform.position.y + m_DistToGround, transform.position.z - 0.2f);
+
+        LayerMask mask = ~(LayerMask.GetMask("Ragdoll") | LayerMask.GetMask("Ignore Raycast") | LayerMask.GetMask("HitBox"));
+
+        return Physics.Raycast(center, -Vector3.up, m_DistToGround + 0.3f, mask) |
+            Physics.Raycast(XPlus, -Vector3.up, m_DistToGround + 0.3f, mask) |
+            Physics.Raycast(XMinus, -Vector3.up, m_DistToGround + 0.3f, mask) |
+            Physics.Raycast(ZPlus, -Vector3.up, m_DistToGround + 0.3f, mask) |
+            Physics.Raycast(ZMinus, -Vector3.up, m_DistToGround + 0.3f, mask);
     }
     public void EnableInput() //To be used by animation events.
     {
         if (photonView.IsMine)
         {
             EventManager.Get().StoppedGettingUp();
-            EventManager.Get().EnableInput();
+            if(!Cursor.visible) // If the cursor is on screen player is either typing in chat or trying to navigate the menu so don't enable the input if that is the case.
+                EventManager.Get().EnableInput();
         }
     }
     public void DisableInput()
@@ -199,7 +212,7 @@ public class Ragdoll : MonoBehaviourPunCallbacks
         {
             if(collision.transform.CompareTag("Bulldog") || collision.transform.CompareTag("Runner") || collision.transform.CompareTag("Player") )
             {
-                if(!GetComponent<Game.Controls>().IsGrounded() && GetComponent<Game.Controls>().DistanceToGround() >= 3.5f)
+                if(!GetComponent<Game.Controls>().IsGrounded() && GetComponent<Game.Controls>().DistanceToGround() >= 2.0f)
                 {
                     photonView.RPC("ActivateRagdoll", RpcTarget.All, Game.SenderType.Standard);
                     collision.transform.GetComponent<Ragdoll>().photonView.RPC("ActivateRagdoll", RpcTarget.All, Game.SenderType.Standard);

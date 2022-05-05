@@ -111,7 +111,8 @@ namespace Game
                 if(DoOnce && !m_IsRagdolling && !m_IsDashing && !m_IsRolling)
                 {
                     DoOnce = false;
-                    m_IsInputEnabled = true;
+                    if(!Cursor.visible)
+                        m_IsInputEnabled = true;
                     m_IsEmoting = false;
                 }
             }
@@ -216,8 +217,25 @@ namespace Game
         }
         public bool IsGrounded()
         {
-            Debug.DrawRay(new Vector3(transform.position.x, transform.position.y + m_DistToGround, transform.position.z), -Vector3.up, Color.yellow, m_DistToGround + 0.3f);
-            return Physics.Raycast(new Vector3(transform.position.x, transform.position.y + m_DistToGround, transform.position.z), -Vector3.up, m_DistToGround + 0.3f, ~(LayerMask.GetMask("Ragdoll") | LayerMask.GetMask("Ignore Raycast") | LayerMask.GetMask("HitBox")));
+            Vector3 center = new Vector3(transform.position.x, transform.position.y + m_DistToGround, transform.position.z);
+            Vector3 XPlus = new Vector3(transform.position.x + 0.2f, transform.position.y + m_DistToGround, transform.position.z);
+            Vector3 XMinus = new Vector3(transform.position.x - 0.2f, transform.position.y + m_DistToGround, transform.position.z); 
+            Vector3 ZPlus = new Vector3(transform.position.x, transform.position.y + m_DistToGround, transform.position.z + 0.2f);
+            Vector3 ZMinus = new Vector3(transform.position.x, transform.position.y + m_DistToGround, transform.position.z - 0.2f);
+
+
+            LayerMask mask = ~(LayerMask.GetMask("Ragdoll") | LayerMask.GetMask("Ignore Raycast") | LayerMask.GetMask("HitBox"));
+
+            Debug.DrawRay(center, -Vector3.up, Color.yellow, m_DistToGround + 0.3f);
+            Debug.DrawRay(XPlus, -Vector3.up, Color.yellow, m_DistToGround + 0.3f);
+            Debug.DrawRay(XMinus, -Vector3.up, Color.yellow, m_DistToGround + 0.3f);
+            Debug.DrawRay(ZPlus, -Vector3.up, Color.yellow, m_DistToGround + 0.3f);
+            Debug.DrawRay(ZMinus, -Vector3.up, Color.yellow, m_DistToGround + 0.3f);
+            return Physics.Raycast(center, -Vector3.up, m_DistToGround + 0.3f, mask) |
+                Physics.Raycast(XPlus, -Vector3.up, m_DistToGround + 0.3f, mask) |
+                Physics.Raycast(XMinus, -Vector3.up, m_DistToGround + 0.3f, mask) |
+                Physics.Raycast(ZPlus, -Vector3.up, m_DistToGround + 0.3f, mask) |
+                Physics.Raycast(ZMinus, -Vector3.up, m_DistToGround + 0.3f, mask);
         }
         public float DistanceToGround()
         {

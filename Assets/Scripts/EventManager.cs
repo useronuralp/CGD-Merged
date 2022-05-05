@@ -21,6 +21,7 @@ public class EventManager : MonoBehaviourPunCallbacks
     public event Action OnGameEnd;
     public event Action OnUpdateScores;
     public event Action<string> OnChangeEyes;
+    public event Action OnTriggerEndGame;
     private void Awake()
     {
         s_Instance = this;
@@ -84,6 +85,10 @@ public class EventManager : MonoBehaviourPunCallbacks
     public void ChangeEyes(string type)
     {
         OnChangeEyes?.Invoke(type);
+    }
+    public void TriggerEndGame()
+    {
+        OnTriggerEndGame?.Invoke();
     }
     //Singleton getter---------------------
     public static EventManager Get()

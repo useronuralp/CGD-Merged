@@ -68,6 +68,8 @@ namespace Game
         private bool             m_HasRoundStarted;
         private GameObject       m_ScorePanelContent;
         private TextMeshProUGUI  m_GameEndText;
+
+        private GameObject       m_EndScreen;
                                  
         static public int        m_NumberOfInstantitatedPlayers = 0;
         static public int        m_NumberOfInitiallySetupPlayers = 0;
@@ -100,6 +102,7 @@ namespace Game
         private Cinemachine.CinemachineFreeLook m_FreeLookCamera;
         void Start()
         {
+            m_EndScreen = GameObject.Find("UI").transform.Find("Canvas").Find("EndScreen").gameObject;
             m_GameEndText = GameObject.Find("UI").transform.Find("Canvas").Find("EndOfGameTimer").GetComponent<TextMeshProUGUI>();
             m_ScorePanelContent = GameObject.Find("UI").transform.Find("Canvas").Find("ScorePanel").Find("Content").gameObject;
             m_Players = new List<KeyValuePair<float, string>>();
@@ -110,6 +113,7 @@ namespace Game
             EventManager.Get().OnStartingSpectating += OnStartingSpectating;
             EventManager.Get().OnStoppingSpectating += OnStoppingSpectating;
             EventManager.Get().OnUpdateScores += OnUpdateScores;
+            EventManager.Get().OnTriggerEndGame += OnTriggerEndGame;
             LockCursor();
             m_NumberOfInstantitatedPlayers = 0;
             m_NumberOfInitiallySetupPlayers = 0;
@@ -337,20 +341,17 @@ namespace Game
                 m_NumberOfInitiallySetupPlayers++;
                 photonView.RPC("IncreaseInitiallySetupPlayerCount", RpcTarget.All, m_NumberOfInitiallySetupPlayers);
             }
-            else if(photonEvent.Code == (byte)EventType.BulldogsWin && PhotonNetwork.IsMasterClient)
+            else if(photonEvent.Code == (byte)EventType.BulldogsWin)
             {
-                if((bool)photonEvent.CustomData)
-                {
-                    photonView.RPC("EndGame", RpcTarget.All);
-                }
-                else
-                {
-                    photonView.RPC("EndGame", RpcTarget.All);
-                }
+                m_EndScreen.SetActive(true);
+                m_EndScreen.transform.Find("Text").GetComponent<TextMeshProUGUI>().text = "Bulldogs Win";
+                //photonView.RPC("EndGame", RpcTarget.All);
             }
-            else if (photonEvent.Code == (byte)EventType.RunnersWin && PhotonNetwork.IsMasterClient)
+            else if (photonEvent.Code == (byte)EventType.RunnersWin)
             {
-                photonView.RPC("EndGame", RpcTarget.All);
+                m_EndScreen.SetActive(true);
+                m_EndScreen.transform.Find("Text").GetComponent<TextMeshProUGUI>().text = "Runners Win";
+                //photonView.RPC("EndGame", RpcTarget.All);
             }
             else if(photonEvent.Code == (byte)EventType.ReleaseCamera)
             {
@@ -511,10 +512,10 @@ namespace Game
             m_FreeLookCamera.LookAt = player.transform;
             m_FreeLookCamera.Follow = player.transform;
         }
-
         [PunRPC]
         void EndGame()
         {
+            m_EndScreen.SetActive(false);
             m_TimerText.gameObject.SetActive(false);
             m_GameEndText.gameObject.SetActive(true);
             m_Timer = 20;
@@ -607,6 +608,11 @@ namespace Game
                 newPlayerScore.transform.Find("PlayerNameText").GetComponent<TextMeshProUGUI>().text = info.Value;
                 newPlayerScore.transform.Find("PlayerScoreText").GetComponent<TextMeshProUGUI>().text = info.Key.ToString();
             }
+        }
+        void OnTriggerEndGame()
+        {
+            if(PhotonNetwork.IsMasterClient)
+                photonView.RPC("EndGame", RpcTarget.All);
         }
         void OnUpdateScores()
         {

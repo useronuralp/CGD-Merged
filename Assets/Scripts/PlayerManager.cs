@@ -123,7 +123,7 @@ namespace Game
             transform.Find("NameCanvas").Find("PlayerName").GetComponent<TextMeshProUGUI>().color = clr;
             GetComponent<Outline>().OutlineColor = clr;
             m_JammoEyesMaterial.color = clr;
-            m_JammoEyesMaterial.SetColor("_EmissionColor", (clr) * 800.0f);
+            m_JammoEyesMaterial.SetColor("_EmissionColor", (clr) * 1200.0f);
             m_JammoEyesMaterial.SetTextureOffset("_MainTex", m_EyeTypes["Default"]);
 
         }
@@ -333,6 +333,18 @@ namespace Game
                     photonView.RPC("IncreaseScore", RpcTarget.All, 10.0f);
                     if(s_CrossedFinishLineCount < s_RunnerCount)
                         BecomeSpectatorByCrossingFinishLine();
+                    else if(s_CrossedFinishLineCount == s_RunnerCount)
+                    {
+                        var playerCamera = GameObject.Find("PlayerCamera");
+                        playerCamera.GetComponent<Cinemachine.CinemachineFreeLook>().LookAt = null;
+                        playerCamera.GetComponent<Cinemachine.CinemachineFreeLook>().Follow = null;
+                        if(photonView.IsMine)
+                            EventManager.Get().DisableInput(SenderType.Standard);
+                        SpectatorSpawn();
+                        Cursor.visible = false;
+                        Cursor.lockState = CursorLockMode.Locked;
+                    }
+
                 }
                 else if(other.CompareTag("DeathBox"))
                 {
@@ -363,6 +375,9 @@ namespace Game
                 if(other.CompareTag("Powerup_DoubleJump"))
                 {
                     photonView.RPC("Powerup", RpcTarget.All, PowerupType.DoubleJump, m_PlayerName);
+                    //PhotonNetwork.Instantiate("PowerupParticles", other.transform.position, other.transform.rotation);
+                    //var soundSource = PhotonNetwork.Instantiate("SoundSource", other.transform.position, other.transform.rotation);
+                    //PhotonNetwork.Destroy(other.gameObject);
                 }
             }
         }
@@ -461,7 +476,8 @@ namespace Game
         }
         void OnChangeEyes(string type)
         {
-            photonView.RPC("ChangeEyes", RpcTarget.All, type);
+            if(photonView.IsMine)
+                photonView.RPC("ChangeEyes", RpcTarget.All, type);
         }
     }
 }
