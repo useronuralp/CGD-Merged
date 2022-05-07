@@ -119,17 +119,6 @@ namespace Game
             {
                 return;
             }
-            if(Input.GetKeyDown(KeyCode.F))
-            {
-                if(transform.Find("Forcefield").gameObject.activeInHierarchy)
-                {
-                    transform.Find("Forcefield").gameObject.SetActive(false);
-                }
-                else
-                {
-                    transform.Find("Forcefield").gameObject.SetActive(true);
-                }
-            }
             if(isEmoting())
             {
                 DoOnce = true;
