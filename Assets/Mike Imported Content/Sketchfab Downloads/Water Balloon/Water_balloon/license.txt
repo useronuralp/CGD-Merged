@@ -1,0 +1,11 @@
+Model Information:
+* title:	Water balloon
+* source:	https://sketchfab.com/3d-models/water-balloon-77d95c70624a4ed8b35a06ba63175427
+* author:	Manuagc (https://sketchfab.com/Manuagc)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Water balloon" (https://sketchfab.com/3d-models/water-balloon-77d95c70624a4ed8b35a06ba63175427) by Manuagc (https://sketchfab.com/Manuagc) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
