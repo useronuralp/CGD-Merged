@@ -22,6 +22,10 @@ public class EventManager : MonoBehaviourPunCallbacks
     public event Action OnUpdateScores;
     public event Action<string> OnChangeEyes;
     public event Action OnTriggerEndGame;
+    public event Action OnActivateDoubleJump;
+    public event Action OnActivateWaterBaloon;
+    public event Action OnGetStunned;
+    public event Action OnStunWearsOff;
     private void Awake()
     {
         s_Instance = this;
@@ -89,6 +93,22 @@ public class EventManager : MonoBehaviourPunCallbacks
     public void TriggerEndGame()
     {
         OnTriggerEndGame?.Invoke();
+    }
+    public void ActivateDoubleJump()
+    {
+        OnActivateDoubleJump?.Invoke();
+    }
+    public void ActivateWaterBaloon()
+    {
+        OnActivateWaterBaloon?.Invoke();
+    }
+    public void GetStunned()
+    {
+        OnGetStunned?.Invoke();
+    }
+    public void StunWearsOff()
+    {
+        OnStunWearsOff?.Invoke();
     }
     //Singleton getter---------------------
     public static EventManager Get()

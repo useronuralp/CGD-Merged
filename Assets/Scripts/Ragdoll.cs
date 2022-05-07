@@ -35,7 +35,7 @@ namespace Game
 
             foreach (var collider in gameObject.GetComponentsInChildren<Collider>())
             {
-                if (collider.gameObject != gameObject)
+                if (collider.gameObject != gameObject && !collider.gameObject.CompareTag("Forcefield"))
                 {
                     m_RagdollColliders.Add(collider);
                     collider.isTrigger = true;
@@ -73,6 +73,13 @@ namespace Game
         }
         void Update()
         {
+            //if(Input.GetKeyDown(KeyCode.K))
+            //{
+            //    if(photonView.IsMine)
+            //    {
+            //        photonView.RPC("ActivateRagdoll", RpcTarget.All, SenderType.Standard);
+            //    }
+            //}
             if (m_IsInRagdollState && photonView.IsMine)
             {
                 m_RagdollSoundTimer -= Time.deltaTime;
@@ -223,6 +230,7 @@ namespace Game
                 {
                     if (!GetComponent<Game.Controls>().IsGrounded() && GetComponent<Game.Controls>().DistanceToGround() >= 2.2f)
                     {
+                        // Bug but a welcomed one.
                         photonView.RPC("ActivateRagdoll", RpcTarget.All, Game.SenderType.Standard);
                         collision.transform.GetComponent<Ragdoll>().photonView.RPC("ActivateRagdoll", RpcTarget.All, Game.SenderType.Standard);
                     }

@@ -109,6 +109,10 @@ MonoBehaviour:
   - EndGame_RPC
   - DeactivateRagdoll_EndGame
   - DeactivateRagdoll_Forced
+  - EnableStunVFX
+  - DisableStunVFX
+  - Explode
+  - GetStunned_RPC
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

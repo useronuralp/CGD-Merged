@@ -156,7 +156,13 @@ namespace Game
         }
         private void Update()
         {
-            if(m_HasGameEnded)
+            //if(PhotonNetwork.IsMasterClient)
+            //{
+            //    Debug.LogError("Bulldog: " + PlayerManager.s_BulldogCount);
+            //    Debug.LogError("Runner: " + PlayerManager.s_RunnerCount);
+            //    Debug.LogError("Crossed Number:" + PlayerManager.s_CrossedFinishLineCount);
+            //}
+            if (m_HasGameEnded)
             {
                 if(m_Timer <= 0)
                 {
@@ -229,7 +235,7 @@ namespace Game
                 //{
                 //    RestartRound();
                 //}
-                if(s_HasRoundStarted)
+                if(s_HasRoundStarted && !m_HasGameEnded)
                 {
                     if (PlayerManager.s_CrossedFinishLineCount > 0 && PlayerManager.s_CrossedFinishLineCount == PlayerManager.s_RunnerCount) // Test this might not work.
                     {
@@ -258,7 +264,7 @@ namespace Game
                     }
                 }
             }
-            if(s_HasRoundStarted)
+            if(s_HasRoundStarted && !m_HasGameEnded)
             {
                 if(m_Timer > 0.0f)
                 {
@@ -270,7 +276,8 @@ namespace Game
                     s_HasRoundStarted = false;
                     if (PhotonNetwork.IsMasterClient)
                     {
-                        RestartRound();
+                        if(!m_HasGameEnded)
+                            RestartRound();
                     }
                 }
                 m_TimerText.text = TimeSpan.FromSeconds(m_Timer).ToString(@"mm\:ss");
@@ -284,6 +291,8 @@ namespace Game
 
         public void RestartRound() // Meant to be only called by the master client!
         {
+            if (m_HasGameEnded)
+                return;
             if(PhotonNetwork.IsMasterClient)
             {
                 if(PlayerManager.s_CrossedFinishLineCount == 1)
@@ -292,6 +301,13 @@ namespace Game
                     PlayerManager.s_CrossedFinishLineCount = 0;
                     return;
                 }
+                else if(PlayerManager.s_CrossedFinishLineCount == 0)
+                {
+
+                    Utility.RaiseEvent(false, EventType.BulldogsWin, ReceiverGroup.All, EventCaching.DoNotCache, true);
+                    return;
+                }
+
                 photonView.RPC("ResetRound", RpcTarget.All);
                 Utility.RaiseEvent(true, EventType.RoundEnd, ReceiverGroup.All, EventCaching.DoNotCache, true);
                 m_LocalPlayer.GetComponent<PlayerManager>().ResetSpawnNumbering();
@@ -374,7 +390,7 @@ namespace Game
                     Utility.RaiseEvent(false, EventType.BulldogsWin, ReceiverGroup.All, EventCaching.DoNotCache, true);
                     photonView.RPC("StopPlayableDirector", RpcTarget.All);
                 }
-                else if(PlayerManager.s_CrossedFinishLineCount == 1)
+                else if(PlayerManager.s_RunnerCount == 1 && PlayerManager.s_CrossedFinishLineCount == 1)
                 {
                     Utility.RaiseEvent(false, EventType.RunnersWin, ReceiverGroup.All, EventCaching.DoNotCache, true);
                     photonView.RPC("StopPlayableDirector", RpcTarget.All);

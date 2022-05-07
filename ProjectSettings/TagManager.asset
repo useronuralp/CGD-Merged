@@ -11,6 +11,10 @@ TagManager:
   - PlayerEyes
   - DeathBox
   - Powerup_DoubleJump
+  - Powerup_WaterBaloon
+  - Powerup_Forcefield
+  - Waterbaloon
+  - Forcefield
   layers:
   - Default
   - TransparentFX

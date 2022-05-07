@@ -12,7 +12,7 @@ namespace Game
         public static GameObject s_LocalPlayerInstance; //The static variables are initialized to defualt values whenever a new player joins the game. Therefore, each time a new player joins, they will set the s_localPlayerInstance to "null".
         private Rigidbody m_Rigidbody;
 
-        public bool m_IsBulldog { get; set; } = true;
+        public bool m_IsBulldog { get; set; } = false;
 
         private Vector3              m_BulldogSpawnPoint;
         private Vector3              m_RunnerSpawnPoint;
@@ -34,6 +34,8 @@ namespace Game
 
         private Material            m_JammoEyesMaterial;
 
+        private TextMeshProUGUI     m_PowerupName;
+
         static public string        s_LatestPlayerWhoCrossedTheline = "None";
         private float               m_Score = 0;
 
@@ -41,11 +43,21 @@ namespace Game
 
         private Animator            m_Animator;
 
+        private bool                m_IsStunned = false;
+
+        private float               m_StunTimer;
+        private float               m_StunCD = 5;
+
+        //Powerups----------------------
+        private bool                m_HasDoubleJump = false;
+
         private Dictionary<string, Vector2> m_EyeTypes;
 
         public enum PowerupType
         {
             DoubleJump,
+            WaterBaloon,
+            Forcefield,
         }
         public void Respawn()
         {
@@ -53,6 +65,10 @@ namespace Game
         }
         private void Start()
         {
+            m_StunTimer = m_StunCD;
+            m_PowerupName = transform.Find("PowerupCanvas").Find("PowerupSlot").Find("PowerupName").GetComponent<TextMeshProUGUI>();
+            if (photonView.IsMine)
+                transform.Find("PowerupCanvas").Find("PowerupSlot").gameObject.SetActive(true);
             m_EyeTypes = new Dictionary<string, Vector2>();
             m_EyeTypes.Add("Default", new Vector2(0.0f, 0.0f));
             m_EyeTypes.Add("Happy", new Vector2(0.33f, 0.0f));
@@ -89,7 +105,33 @@ namespace Game
             }
         }
         private void Update()
-        {          
+        {
+            //if(Input.GetKeyDown(KeyCode.J) && photonView.IsMine)
+            //{
+            //    GetStunned();
+            //}
+            if(m_IsStunned)
+            {
+                if(m_StunTimer <= 0.0f)
+                {
+                    m_IsStunned = false;
+                    EventManager.Get().StunWearsOff();
+                    photonView.RPC("DisableStunVFX", RpcTarget.All);
+                    m_StunTimer = m_StunCD;
+                    return;
+                }
+                m_StunTimer -= Time.deltaTime;
+            }
+        }
+        [PunRPC]
+        void EnableStunVFX()
+        {
+            transform.Find("StunVFX").gameObject.SetActive(true);
+        }
+        [PunRPC]
+        void DisableStunVFX()
+        {
+            transform.Find("StunVFX").gameObject.SetActive(false);
         }
         [PunRPC]
         private void SetOutlineColor(object[] data)
@@ -204,11 +246,6 @@ namespace Game
             m_Rigidbody.velocity = Vector3.zero;
             m_Rigidbody.angularVelocity = Vector3.zero;
 
-            if(s_BulldogCount == PhotonNetwork.CurrentRoom.PlayerCount) // Check bulldog count while placing the players. If there are no runners during this stage it means the game is won by the Bulldogs.
-            {
-                if(PhotonNetwork.IsMasterClient)
-                    Utility.RaiseEvent(true, EventType.BulldogsWin, ReceiverGroup.All, EventCaching.DoNotCache, true);
-            }
             m_HasCrossedTheFinishLine = false;
             if (!isFirstRound)
                 StartCoroutine(ReleaseCameraDelayed(0.2f));
@@ -303,15 +340,12 @@ namespace Game
         }
         private void OnCollisionEnter(Collision collision)
         {
-            if(m_HasRoundStarted)
+            if(m_HasRoundStarted && photonView.IsMine)
             {
-                if (photonView.IsMine)
+                if (collision.transform.CompareTag("Bulldog") && !m_IsBulldog)
                 {
-                    if (collision.transform.CompareTag("Bulldog") && !m_IsBulldog)
-                    {
-                        BecomeBulldogByCollisionHelper();
-                        collision.transform.GetComponent<PlayerManager>().photonView.RPC("IncreaseScore", RpcTarget.All, 5.0f);
-                    }
+                    BecomeBulldogByCollisionHelper();
+                    collision.transform.GetComponent<PlayerManager>().photonView.RPC("IncreaseScore", RpcTarget.All, 5.0f);
                 }
             }
         }
@@ -371,7 +405,7 @@ namespace Game
                     }
                 }
             }
-            if(PhotonNetwork.IsMasterClient)
+            if (PhotonNetwork.IsMasterClient)
             {
                 if(other.CompareTag("Powerup_DoubleJump"))
                 {
@@ -380,7 +414,35 @@ namespace Game
                     StartCoroutine(SpawnSoundSource(other.transform.position, other.transform.rotation));
                     PhotonNetwork.Destroy(other.gameObject);
                 }
+                else if(other.CompareTag("Powerup_WaterBaloon") && (!m_IsBulldog || CompareTag("Player")))
+                {
+                    photonView.RPC("Powerup", RpcTarget.All, PowerupType.WaterBaloon, m_PlayerName);
+                    StartCoroutine(SpawnPowerupParticles(other.transform.position, other.transform.rotation));
+                    StartCoroutine(SpawnSoundSource(other.transform.position, other.transform.rotation));
+                    PhotonNetwork.Destroy(other.gameObject);
+                }
+                else if (other.CompareTag("Powerup_Forcefield") && (!m_IsBulldog || CompareTag("Player")))
+                {
+                    photonView.RPC("Powerup", RpcTarget.All, PowerupType.Forcefield, m_PlayerName);
+                    StartCoroutine(SpawnPowerupParticles(other.transform.position, other.transform.rotation));
+                    StartCoroutine(SpawnSoundSource(other.transform.position, other.transform.rotation));
+                    PhotonNetwork.Destroy(other.gameObject);
+                }
             }
+        }
+        [PunRPC]
+        void GetStunned_RPC()
+        {
+            if(photonView.IsMine)
+            {
+                EventManager.Get().GetStunned();
+                m_IsStunned = true;
+                photonView.RPC("EnableStunVFX", RpcTarget.All);
+            }
+        }
+        public void GetStunned()
+        {
+            photonView.RPC("GetStunned_RPC", RpcTarget.All);
         }
         IEnumerator SpawnPowerupParticles(Vector3 spawnLocation, Quaternion spawnRotation)
         {
@@ -403,6 +465,24 @@ namespace Game
             {
                 case PowerupType.DoubleJump:
                     Debug.LogError("Player " + name + " has double jump");
+                    if(photonView.IsMine)
+                    {
+                        DoubleJump();
+                    }
+                    break;
+                case PowerupType.WaterBaloon:
+                    Debug.LogError("Player " + name + " has water baloon");
+                    if (photonView.IsMine)
+                    {
+                        WaterBaloon();
+                    }
+                    break;
+                case PowerupType.Forcefield:
+                    Debug.LogError("Player " + name + " has forcefield");
+                    if (photonView.IsMine)
+                    {
+                        Forcefield();
+                    }
                     break;
             }
         }
@@ -481,7 +561,6 @@ namespace Game
         IEnumerator ReleaseCameraDelayed(float delay)
         {
             yield return new WaitForSeconds(delay);
-            Debug.LogError("Released Camera");
             Utility.RaiseEvent(true, EventType.ReleaseCamera, ReceiverGroup.All, EventCaching.DoNotCache, true);
         }
         [PunRPC]
@@ -506,6 +585,22 @@ namespace Game
         {
             if(photonView.IsMine)
                 photonView.RPC("ChangeEyes", RpcTarget.All, type);
+        }
+        //Powerups-------------------------------
+        void DoubleJump()
+        {
+            EventManager.Get().ActivateDoubleJump();
+            m_HasDoubleJump = true;
+            m_PowerupName.text = "Double Jump";
+        }
+        void WaterBaloon()
+        {
+            m_PowerupName.text = "Water Baloon";
+            EventManager.Get().ActivateWaterBaloon();
+        }
+        void Forcefield()
+        {
+            m_PowerupName.text = "Forcefield";
         }
     }
 }
