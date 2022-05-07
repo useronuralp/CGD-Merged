@@ -24,8 +24,10 @@ public class EventManager : MonoBehaviourPunCallbacks
     public event Action OnTriggerEndGame;
     public event Action OnActivateDoubleJump;
     public event Action OnActivateWaterBaloon;
+    public event Action OnActivateForcefield;
     public event Action OnGetStunned;
     public event Action OnStunWearsOff;
+
     private void Awake()
     {
         s_Instance = this;
@@ -101,6 +103,10 @@ public class EventManager : MonoBehaviourPunCallbacks
     public void ActivateWaterBaloon()
     {
         OnActivateWaterBaloon?.Invoke();
+    }
+    public void ActivateForcefield()
+    {
+        OnActivateForcefield?.Invoke();
     }
     public void GetStunned()
     {

@@ -48,6 +48,9 @@ namespace Game
         private float               m_StunTimer;
         private float               m_StunCD = 5;
 
+
+        private bool                m_HasForcefield = false;
+
         //Powerups----------------------
         private bool                m_HasDoubleJump = false;
 
@@ -344,6 +347,8 @@ namespace Game
             {
                 if (collision.transform.CompareTag("Bulldog") && !m_IsBulldog)
                 {
+                
+                    Debug.LogError("Collided with bulldog");
                     BecomeBulldogByCollisionHelper();
                     collision.transform.GetComponent<PlayerManager>().photonView.RPC("IncreaseScore", RpcTarget.All, 5.0f);
                 }
@@ -586,6 +591,22 @@ namespace Game
             if(photonView.IsMine)
                 photonView.RPC("ChangeEyes", RpcTarget.All, type);
         }
+        //void OnActivateForcefield()
+        //{
+        //    if(photonView.IsMine)
+        //        photonView.RPC("ActivateForcefield_RPC", RpcTarget.All);
+        //}
+        [PunRPC]
+        void ActivateForcefield_RPC()
+        {
+
+            m_HasForcefield = true;
+        }
+        [PunRPC]
+        void DeactivateForcefield_RPC()
+        {
+            m_HasForcefield = false;
+        }
         //Powerups-------------------------------
         void DoubleJump()
         {
@@ -601,6 +622,11 @@ namespace Game
         void Forcefield()
         {
             m_PowerupName.text = "Forcefield";
+            if (photonView.IsMine)
+            {
+                PhotonNetwork.Instantiate("Forcefield", new Vector3(transform.position.x, transform.position.y + 0.5f, transform.position.z), transform.rotation);
+            }
+            photonView.RPC("ActivateForcefield_RPC", RpcTarget.All);
         }
     }
 }
