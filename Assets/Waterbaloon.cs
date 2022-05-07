@@ -7,7 +7,7 @@ using Photon.Realtime;
 public class Waterbaloon : MonoBehaviourPunCallbacks
 {
     private float m_SelfDestroyTimer = 2.0f;
-    private MeshRenderer m_Renderer;
+    private SkinnedMeshRenderer m_Renderer;
     private Collider m_Collider;
     private bool DoOnce = true;
     private bool m_Disabled = false;
@@ -17,11 +17,15 @@ public class Waterbaloon : MonoBehaviourPunCallbacks
     {
         m_SplashSound = Resources.Load<AudioClip>("Audio/SFX/SplashSound");
         m_AudioSource = GetComponent<AudioSource>();
-        m_Renderer = GetComponent<MeshRenderer>();
+        m_Renderer = transform.Find("Sketchfab_model").Find("Root").Find("water ballon").Find("water ballon_0").GetComponent<SkinnedMeshRenderer>();
         m_Collider = GetComponent<Collider>();
     }
     void Update()
     {
+        if(photonView.IsMine)
+        {
+            transform.Rotate(new Vector3(1, 1, 1), 1000.0f * Time.deltaTime);
+        }
         if(m_SelfDestroyTimer <= 0 )
         {
             if(DoOnce && !m_Disabled)

@@ -204,7 +204,7 @@ namespace Game
                 if(Input.GetMouseButtonDown(0) && Input.GetMouseButton(1) && m_HasWaterBaloon)
                 {
                     var throwDirection = m_TpsCamera.transform.forward * 10000 - m_TpsCamera.transform.position;
-                    var baloon = PhotonNetwork.Instantiate("Waterbaloon", new Vector3(transform.position.x, transform.position.y + 1.5f, transform.position.z), transform.rotation);
+                    var baloon = PhotonNetwork.Instantiate("Water_balloon", new Vector3(transform.position.x, transform.position.y + 1.5f, transform.position.z), transform.rotation);
                     baloon.GetComponent<Rigidbody>().AddForce(throwDirection.normalized * 50.0f, ForceMode.Impulse);
                     Physics.IgnoreCollision(GetComponent<Collider>(), baloon.GetComponent<Collider>());
                     m_PowerupName.text = "None";
