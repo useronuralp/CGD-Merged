@@ -11,47 +11,40 @@ namespace Game
     {
         public static GameObject s_LocalPlayerInstance; //The static variables are initialized to defualt values whenever a new player joins the game. Therefore, each time a new player joins, they will set the s_localPlayerInstance to "null".
         private Rigidbody m_Rigidbody;
-
         public bool m_IsBulldog { get; set; } = false;
-
         private Vector3              m_BulldogSpawnPoint;
         private Vector3              m_RunnerSpawnPoint;
-
         private Dictionary<int, int> m_EvenSpawnPoints;
         private Dictionary<int, int> m_OddSpawnPoints;
-
         static public int           s_BulldogCount = 0;
         static public int           s_RunnerCount = 0;
         static public int           s_CrossedFinishLineCount = 0;
-
         private float               m_SpawnSpacing;
-
         private bool                m_HasRoundStarted = false;
-
         private bool                m_HasCrossedTheFinishLine = false;
-
         public bool                 IsSpectating = false;
-
         private Material            m_JammoEyesMaterial;
-
         private TextMeshProUGUI     m_PowerupName;
-
         static public string        s_LatestPlayerWhoCrossedTheline = "None";
         private float               m_Score = 0;
-
         private string              m_PlayerName;
-
         private Animator            m_Animator;
-
         private bool                m_IsStunned = false;
-
         private float               m_StunTimer;
         private float               m_StunCD = 5;
-
-
-        private bool                m_HasForcefield = false;
-
+        private bool                m_FirstForcefieldPickup = true;
+        private bool                m_FirstWaterballoonPickup = true;
+        private bool                m_FirstDoublejumpPickup = true;
+        private bool                m_FirstRoundBeingPlayed = true;
+        private GameObject          m_PowerupBubble;
+        private float               m_PowerupBubbleTimer = 7;
+        private bool                m_BubbleCountdown = false;
+        private bool                m_TutorialTextCountdown = false;
+        private float               m_TutorialTextTimer = 7;
+        private GameObject          m_TutorialText;
         //Powerups----------------------
+        private bool                m_HasWaterBalloon = false;
+        private bool                m_HasForcefield = false;
         private bool                m_HasDoubleJump = false;
 
         private Dictionary<string, Vector2> m_EyeTypes;
@@ -68,8 +61,10 @@ namespace Game
         }
         private void Start()
         {
+            m_TutorialText = GameObject.Find("UI").transform.Find("Canvas").Find("TutorialText").gameObject;
             m_StunTimer = m_StunCD;
             m_PowerupName = transform.Find("PowerupCanvas").Find("PowerupSlot").Find("PowerupName").GetComponent<TextMeshProUGUI>();
+            m_PowerupBubble = transform.Find("PowerupCanvas").Find("Bubble").gameObject;
             if (photonView.IsMine)
                 transform.Find("PowerupCanvas").Find("PowerupSlot").gameObject.SetActive(true);
             m_EyeTypes = new Dictionary<string, Vector2>();
@@ -86,6 +81,8 @@ namespace Game
                 photonView.RPC("SetNickname", RpcTarget.AllBuffered, PhotonNetwork.NickName);
             EventManager.Get().UpdateScores();
             EventManager.Get().OnChangeEyes += OnChangeEyes;
+            EventManager.Get().OnDeactivateWaterballoon += OnDeactivateWaterballoon;
+            EventManager.Get().OnDeactivateDoubleJump+= OnDeactivateDoubleJump;
             m_EvenSpawnPoints = new Dictionary<int, int>() { {0,1}, {2,2}, {4,3}, {6,4}, {8,5}, {10,6}, {12,7}, {14,8}, {16,9}, {18,10} };
             m_OddSpawnPoints  = new Dictionary<int, int>() { {1,1}, {3,2}, {5,3}, {7,4}, {9,5}, {11,6}, {13,7}, {15,8}, {17,9}, {19,10} };
             m_Rigidbody = GetComponent<Rigidbody>();
@@ -109,10 +106,34 @@ namespace Game
         }
         private void Update()
         {
+            //if(photonView.IsMine)
+            //    Debug.LogError(m_IsBulldog);
+
             //if(Input.GetKeyDown(KeyCode.J) && photonView.IsMine)
             //{
             //    GetStunned();
             //}
+            if(photonView.IsMine)
+            {
+                if(m_BubbleCountdown)
+                {
+                    if(m_PowerupBubbleTimer <= 0.0f)
+                    {
+                        m_BubbleCountdown = false;
+                        m_PowerupBubble.SetActive(false);
+                    }
+                    m_PowerupBubbleTimer -= Time.deltaTime;
+                }
+                if (m_TutorialTextCountdown)
+                {
+                    if (m_TutorialTextTimer <= 0.0f)
+                    {
+                        m_TutorialTextCountdown = false;
+                        m_TutorialText.SetActive(false);
+                    }
+                    m_TutorialTextTimer -= Time.deltaTime;
+                }
+            }
             if(m_IsStunned)
             {
                 if(m_StunTimer <= 0.0f)
@@ -321,6 +342,22 @@ namespace Game
             else if(photonEvent.Code == (byte)EventType.RoundStart)
             {
                 m_HasRoundStarted = true;
+                if(m_FirstRoundBeingPlayed && photonView.IsMine)
+                {
+                    m_FirstRoundBeingPlayed = false;
+                    if (m_IsBulldog)
+                    {
+                        m_TutorialTextCountdown = true;
+                        m_TutorialText.SetActive(true);
+                        m_TutorialText.GetComponent<TextMeshProUGUI>().text = "Catch as many Rogue Bots as possible by tackling them!";
+                    }
+                    else
+                    {
+                        m_TutorialTextCountdown = true;
+                        m_TutorialText.SetActive(true);
+                        m_TutorialText.GetComponent<TextMeshProUGUI>().text = "Get to the finish line without Security Bots touching you!";
+                    }
+                }
             }
             else if(photonEvent.Code == (byte)EventType.RoundEnd)
             {
@@ -412,21 +449,21 @@ namespace Game
             }
             if (PhotonNetwork.IsMasterClient)
             {
-                if(other.CompareTag("Powerup_DoubleJump"))
+                if(other.CompareTag("Powerup_DoubleJump") && !m_HasDoubleJump)
                 {
                     photonView.RPC("Powerup", RpcTarget.All, PowerupType.DoubleJump, m_PlayerName);
                     StartCoroutine(SpawnPowerupParticles(other.transform.position, other.transform.rotation));
                     StartCoroutine(SpawnSoundSource(other.transform.position, other.transform.rotation));
                     PhotonNetwork.Destroy(other.gameObject);
                 }
-                else if(other.CompareTag("Powerup_WaterBaloon") && (!m_IsBulldog || CompareTag("Player")))
+                else if(other.CompareTag("Powerup_WaterBaloon") && !m_HasWaterBalloon && (!m_IsBulldog || CompareTag("Player")))
                 {
                     photonView.RPC("Powerup", RpcTarget.All, PowerupType.WaterBaloon, m_PlayerName);
                     StartCoroutine(SpawnPowerupParticles(other.transform.position, other.transform.rotation));
                     StartCoroutine(SpawnSoundSource(other.transform.position, other.transform.rotation));
                     PhotonNetwork.Destroy(other.gameObject);
                 }
-                else if (other.CompareTag("Powerup_Forcefield") && (!m_IsBulldog || CompareTag("Player")))
+                else if (other.CompareTag("Powerup_Forcefield") && !m_HasForcefield &&(!m_IsBulldog || CompareTag("Player")))
                 {
                     photonView.RPC("Powerup", RpcTarget.All, PowerupType.Forcefield, m_PlayerName);
                     StartCoroutine(SpawnPowerupParticles(other.transform.position, other.transform.rotation));
@@ -469,24 +506,19 @@ namespace Game
             switch(type)
             {
                 case PowerupType.DoubleJump:
-                    Debug.LogError("Player " + name + " has double jump");
                     if(photonView.IsMine)
-                    {
-                        DoubleJump();
-                    }
+                        photonView.RPC("ActivateDoubleJump_RPC", RpcTarget.All);
                     break;
                 case PowerupType.WaterBaloon:
-                    Debug.LogError("Player " + name + " has water baloon");
                     if (photonView.IsMine)
-                    {
-                        WaterBaloon();
-                    }
+                        photonView.RPC("ActivateWaterballoon_RPC", RpcTarget.All);
                     break;
                 case PowerupType.Forcefield:
-                    Debug.LogError("Player " + name + " has forcefield");
                     if (photonView.IsMine)
                     {
-                        Forcefield();
+                        PhotonNetwork.Instantiate("Forcefield", new Vector3(transform.position.x, transform.position.y + 0.5f, transform.position.z), transform.rotation);
+                        transform.Find("PowerupCanvas").Find("ForcefieldIcon").gameObject.SetActive(true);
+                        photonView.RPC("ActivateForcefield_RPC", RpcTarget.All);
                     }
                     break;
             }
@@ -591,42 +623,95 @@ namespace Game
             if(photonView.IsMine)
                 photonView.RPC("ChangeEyes", RpcTarget.All, type);
         }
-        //void OnActivateForcefield()
-        //{
-        //    if(photonView.IsMine)
-        //        photonView.RPC("ActivateForcefield_RPC", RpcTarget.All);
-        //}
-        [PunRPC]
-        void ActivateForcefield_RPC()
-        {
-
-            m_HasForcefield = true;
-        }
+        //Powerups---------------------------------
         [PunRPC]
         void DeactivateForcefield_RPC()
         {
             m_HasForcefield = false;
         }
-        //Powerups-------------------------------
-        void DoubleJump()
+        [PunRPC]
+        void DeactivateWaterballoon_RPC()
+        {
+            m_HasWaterBalloon = false;
+            if (photonView.IsMine)
+                m_PowerupName.text = "None";
+        }
+        [PunRPC]
+        void DeactivateDoubleJump_RPC()
+        {
+            m_HasDoubleJump = false;
+            if(photonView.IsMine)
+                m_PowerupName.text = "None";
+        }
+        [PunRPC]
+        void ActivateForcefield_RPC()
+        {
+            if(photonView.IsMine)
+            {
+                if (m_FirstForcefieldPickup)
+                {
+                    m_FirstForcefieldPickup = false;
+                    m_PowerupBubble.SetActive(true);
+                    m_PowerupBubble.transform.Find("Text").GetComponent<TextMeshProUGUI>().text = "Forcefields are perfect for when you need a little protection! \n\nIt bounces back whoever touches it!";
+                    m_BubbleCountdown = true;
+                    m_PowerupBubbleTimer = 7;
+                }
+            }
+            m_HasForcefield = true;
+        }
+        [PunRPC]
+        void ActivateWaterballoon_RPC()
+        {
+            EventManager.Get().ActivateWaterBaloon();
+            if(photonView.IsMine)
+            {
+                if (m_FirstWaterballoonPickup)
+                {
+                    m_FirstWaterballoonPickup = false;
+                    m_PowerupBubble.SetActive(true);
+                    m_PowerupBubble.transform.Find("Text").GetComponent<TextMeshProUGUI>().text = "Waterballoons can stun Security Bots! \n\nAim with 'RMB' and shoot with 'LMB'!";
+                    m_BubbleCountdown = true;
+                    m_PowerupBubbleTimer = 7;
+                }
+                m_PowerupName.text = "Water Baloon";
+            }
+            m_HasWaterBalloon = true;
+        }
+        [PunRPC]
+        void ActivateDoubleJump_RPC()
         {
             EventManager.Get().ActivateDoubleJump();
             m_HasDoubleJump = true;
-            m_PowerupName.text = "Double Jump";
-        }
-        void WaterBaloon()
-        {
-            m_PowerupName.text = "Water Baloon";
-            EventManager.Get().ActivateWaterBaloon();
-        }
-        void Forcefield()
-        {
-            m_PowerupName.text = "Forcefield";
-            if (photonView.IsMine)
+            if(photonView.IsMine)
             {
-                PhotonNetwork.Instantiate("Forcefield", new Vector3(transform.position.x, transform.position.y + 0.5f, transform.position.z), transform.rotation);
+                if(m_FirstDoublejumpPickup)
+                {
+                    m_FirstDoublejumpPickup = false;
+                    m_PowerupBubble.SetActive(true);
+                    m_PowerupBubble.transform.Find("Text").GetComponent<TextMeshProUGUI>().text = "Double jump can be used to reach greater heights! \n\nOr better, to juke!";
+                    m_BubbleCountdown = true;
+                    m_PowerupBubbleTimer = 7;
+                }
+                m_PowerupName.text = "Double Jump";
             }
-            photonView.RPC("ActivateForcefield_RPC", RpcTarget.All);
+        }
+        public void DeactivateForcefield()
+        {
+            if(photonView.IsMine)
+            {
+                transform.Find("PowerupCanvas").Find("ForcefieldIcon").gameObject.SetActive(false);
+                photonView.RPC("DeactivateForcefield_RPC", RpcTarget.All);
+            }
+        }
+        void OnDeactivateWaterballoon()
+        {
+            if (photonView.IsMine)
+                photonView.RPC("DeactivateWaterballoon_RPC", RpcTarget.All);
+        }
+        void OnDeactivateDoubleJump()
+        {
+            if (photonView.IsMine)
+                photonView.RPC("DeactivateDoubleJump_RPC", RpcTarget.All);
         }
     }
 }

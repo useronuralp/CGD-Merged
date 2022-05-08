@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 7434373158624934836}
   - component: {fileID: 6343622865985310558}
   - component: {fileID: 1001962771645155483}
+  - component: {fileID: 4845922816818292088}
   m_Layer: 0
   m_Name: Canfetti Cannon with Smoke
   m_TagString: Untagged
@@ -6407,6 +6408,18 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 0}
+--- !u!114 &4845922816818292088
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4832060305084261760}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a2b1bcfecdc7c546baf79319e4ec19e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &6508152559201132256
 GameObject:
   m_ObjectHideFlags: 0

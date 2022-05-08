@@ -115,6 +115,10 @@ MonoBehaviour:
   - GetStunned_RPC
   - ActivateForcefield_RPC
   - DeactivateForcefield_RPC
+  - DeactivateDoubleJump_RPC
+  - DeactivateWaterballoon_RPC
+  - ActivateDoubleJump_RPC
+  - ActivateWaterballoon_RPC
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

@@ -27,6 +27,8 @@ public class EventManager : MonoBehaviourPunCallbacks
     public event Action OnActivateForcefield;
     public event Action OnGetStunned;
     public event Action OnStunWearsOff;
+    public event Action OnDeactivateWaterballoon;
+    public event Action OnDeactivateDoubleJump;
 
     private void Awake()
     {
@@ -115,6 +117,14 @@ public class EventManager : MonoBehaviourPunCallbacks
     public void StunWearsOff()
     {
         OnStunWearsOff?.Invoke();
+    }
+    public void DeactivateWaterballoon()
+    {
+        OnDeactivateWaterballoon?.Invoke();
+    }
+    public void DeactivateDoubleJump()
+    {
+        OnDeactivateDoubleJump?.Invoke();
     }
     //Singleton getter---------------------
     public static EventManager Get()

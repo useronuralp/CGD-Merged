@@ -36,6 +36,8 @@ namespace Game
 
         private bool               DoOnce = false;
         private bool               DoOnce2 = true;
+        private bool               DoOnce3 = true;
+        private bool               DoOnce4 = true;
 
         private bool               m_HasDoubleJump = false;
 
@@ -114,6 +116,7 @@ namespace Game
         }
         void Update()
         {
+            Debug.Log(m_JumpCount);
             //Return if the instance is not local. We don't want to control other people's characters.
             if (photonView.IsMine == false)
             {
@@ -146,8 +149,8 @@ namespace Game
                 {
                     if(m_JumpCount == 1)
                     {
-                        m_HasDoubleJump = false;
-                        m_PowerupName.text = "None";
+                        m_HasDoubleJump = false; 
+                        EventManager.Get().DeactivateDoubleJump();
                     }
                     m_JumpCount++;
                     m_RigidBody.velocity = Vector3.up * m_JumpForce;
@@ -207,8 +210,8 @@ namespace Game
                     var baloon = PhotonNetwork.Instantiate("Water_balloon", new Vector3(transform.position.x, transform.position.y + 1.5f, transform.position.z), transform.rotation);
                     baloon.GetComponent<Rigidbody>().AddForce(throwDirection.normalized * 50.0f, ForceMode.Impulse);
                     Physics.IgnoreCollision(GetComponent<Collider>(), baloon.GetComponent<Collider>());
-                    m_PowerupName.text = "None";
                     m_HasWaterBaloon = false;
+                    EventManager.Get().DeactivateWaterballoon();
                 }
             }
             if (Input.GetKey(KeyCode.Tab))
@@ -237,18 +240,26 @@ namespace Game
 
             bool result = IsGrounded();
             m_Animator.SetBool("isGrounded", result);
+            if(IsGrounded())
+            {
+                if(DoOnce3)
+                {
+                    DoOnce3 = false;
+                    m_JumpCount = 0;
+                }
+            }
+            else
+            {
+                DoOnce3 = true;
+            }
 
-            if(m_RigidBody.velocity.y < 0)
+            if (m_RigidBody.velocity.y < 0)
             {
                 m_Animator.SetBool("isAscending", false);
             }
             else if(m_RigidBody.velocity.y > 0)
             {
                 m_Animator.SetBool("isAscending", true);
-            }
-            else if(m_RigidBody.velocity.y == 0)
-            {
-                m_JumpCount = 0;
             }
 
 
@@ -273,6 +284,7 @@ namespace Game
             {
                 DoOnce2 = false;
                 m_CinemachineFLComponent.m_YAxis.Value = 0.35f;
+                transform.Find("NameCanvas").Find("PlayerName").gameObject.SetActive(false);
             }
             m_MovementSpeed = 2.0f;
             m_Reticle.SetActive(true);
@@ -292,6 +304,7 @@ namespace Game
             m_MovementSpeed = 4.0f;
             m_Reticle.SetActive(false);
             m_IsTargeting = false;
+            transform.Find("NameCanvas").Find("PlayerName").gameObject.SetActive(true);
         }
         public bool IsGrounded()
         {
@@ -504,7 +517,9 @@ namespace Game
         }
         void ResetPowerups()
         {
-            //m_JumpCount = 0;
+            m_JumpCount = 0;
+            EventManager.Get().DeactivateDoubleJump();
+            EventManager.Get().DeactivateWaterballoon();
             m_HasDoubleJump = false;
             m_HasWaterBaloon = false;
         }

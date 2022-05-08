@@ -21,7 +21,10 @@ public class Forcefield : MonoBehaviourPunCallbacks
         if(photonView.IsMine)
         {
             if (m_Lifetime <= 0)
+            {
+                m_Owner.GetComponent<Game.PlayerManager>().DeactivateForcefield();
                 PhotonNetwork.Destroy(gameObject);
+            }
         }
         m_Lifetime -= Time.deltaTime;
         if (photonView.IsMine)
