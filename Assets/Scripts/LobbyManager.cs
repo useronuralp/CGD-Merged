@@ -23,12 +23,15 @@ namespace Game
         private GameObject m_GameTitle;
         private Animator m_JammoAnimator;
         private GameObject m_Jammo;
+        private List<GameObject> m_JammoParts;
 
         private int m_ActiveHeadPiece = 0;
         private int m_ActiveEyePiece = 0;
+        private int m_ActiveBodyColor = 0;
 
         private Dictionary<int, GameObject> m_HeadItems;
         private Dictionary<int, GameObject> m_EyeItems;
+        private Dictionary<int, Material> m_BodyColors;
 
         private GameObject m_CustomizationBackButton;
         private GameObject m_CustomizationPanel;
@@ -47,19 +50,35 @@ namespace Game
         }
         private void Start()
         {
-
             m_Jammo = GameObject.Find("Custom Rogue Bot").transform.Find("Jammo_Player").gameObject;
+
+            m_JammoParts = new List<GameObject>();
+            foreach(Transform transform in m_Jammo.transform)
+            {
+                if(transform.gameObject.name != "Armature.001" && transform.gameObject.name != "head_eyes_low")
+                {
+                    m_JammoParts.Add(transform.gameObject);
+                }
+            }
+
             m_HeadItems = new Dictionary<int, GameObject>();
             m_EyeItems = new Dictionary<int, GameObject>();
+            m_BodyColors = new Dictionary<int, Material>();
 
             m_CustomizationPanel = GameObject.Find("Canvas").transform.Find("CustomizationPanel").gameObject;
             m_HeadItems.Add(1, RecursiveFindChild(m_Jammo.transform, "Top Hat").gameObject);
             m_EyeItems.Add(1, RecursiveFindChild(m_Jammo.transform, "Glasses").gameObject);
+            m_BodyColors.Add(0, Resources.Load<Material>("JammoMaterials/m_jammo_metal_red"));
+            m_BodyColors.Add(1, Resources.Load<Material>("JammoMaterials/m_jammo_metal_black"));
+            m_BodyColors.Add(2, Resources.Load<Material>("JammoMaterials/m_jammo_metal_blue"));
+            m_BodyColors.Add(3, Resources.Load<Material>("JammoMaterials/m_jammo_metal_yellow"));
 
             m_ActiveHeadPiece = PlayerPrefs.GetInt("HeadItem", 0);
             m_ActiveEyePiece = PlayerPrefs.GetInt("EyeItem", 0);
+            m_ActiveBodyColor = PlayerPrefs.GetInt("BodyColor", 0);
             ActivateProperItem(m_HeadItems, m_ActiveHeadPiece);
             ActivateProperItem(m_EyeItems, m_ActiveEyePiece);
+            ActivateBodyColor(m_ActiveBodyColor);
 
             m_CustomizationBackButton = GameObject.Find("UI").transform.Find("LobbyPanel").Find("CustomizationBackButton").gameObject;
             m_GameTitle = GameObject.Find("TitleCanvas").transform.Find("Title").gameObject;
@@ -177,33 +196,54 @@ namespace Game
                 }
             }
         }
+        void ActivateBodyColor(int colorID)
+        {
+            for (int i = 0; i< m_JammoParts.Count; i++)
+            {
+                m_JammoParts[i].GetComponent<Renderer>().material = m_BodyColors[colorID];
+            }
+        }
         public void OnHeadRightButtonPressed()
         {
             m_ActiveHeadPiece = ++m_ActiveHeadPiece % 2;
-            Debug.Log(m_ActiveHeadPiece);
             PlayerPrefs.SetInt("HeadItem", m_ActiveHeadPiece);
             ActivateProperItem(m_HeadItems, m_ActiveHeadPiece);
         }
         public void OnHeadLeftButtonPressed()
         {
-            m_ActiveHeadPiece = Mathf.Abs(--m_ActiveHeadPiece % 2);
-            Debug.Log(m_ActiveHeadPiece);
+            m_ActiveHeadPiece = --m_ActiveHeadPiece;
+            if (m_ActiveHeadPiece < 0)
+                m_ActiveHeadPiece = m_HeadItems.Count;
             PlayerPrefs.SetInt("HeadItem", m_ActiveHeadPiece);
             ActivateProperItem(m_HeadItems, m_ActiveHeadPiece);
         }
         public void OnEyesRightButtonPressed()
         {
             m_ActiveEyePiece = ++m_ActiveEyePiece % 2;
-            Debug.Log(m_ActiveEyePiece);
             PlayerPrefs.SetInt("EyeItem", m_ActiveEyePiece);
             ActivateProperItem(m_EyeItems, m_ActiveEyePiece);
         }
         public void OnEyesLeftButtonPressed()
         {
-            m_ActiveEyePiece = Mathf.Abs(--m_ActiveEyePiece % 2);
-            Debug.Log(m_ActiveEyePiece);
+            m_ActiveEyePiece = --m_ActiveEyePiece;
+            if (m_ActiveEyePiece < 0)
+                m_ActiveEyePiece = m_EyeItems.Count;
             PlayerPrefs.SetInt("EyeItem", m_ActiveEyePiece);
             ActivateProperItem(m_EyeItems, m_ActiveEyePiece);
+        }
+        public void OnColorRightButtonPressed()
+        {
+            m_ActiveBodyColor = ++m_ActiveBodyColor % 4;
+            PlayerPrefs.SetInt("BodyColor", m_ActiveBodyColor);
+            ActivateBodyColor(m_ActiveBodyColor);
+        }
+        public void OnColorLeftButtonPressed()
+        {
+            m_ActiveBodyColor = --m_ActiveBodyColor;
+            if (m_ActiveBodyColor < 0)
+                m_ActiveBodyColor = m_BodyColors.Count - 1;
+            PlayerPrefs.SetInt("BodyColor", m_ActiveBodyColor);
+            ActivateBodyColor(m_ActiveBodyColor);
         }
         IEnumerator ButtonSwitch(bool onOrOff)
         {

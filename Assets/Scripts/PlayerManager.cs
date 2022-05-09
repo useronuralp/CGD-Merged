@@ -49,9 +49,13 @@ namespace Game
         //Customization--------------------
         private int m_ActiveHeadPiece;
         private int m_ActiveEyePiece;
+        private int m_ActiveBodyColor;
 
         private Dictionary<int, GameObject> m_HeadItems;
         private Dictionary<int, GameObject> m_EyeItems;
+        private Dictionary<int, Material> m_BodyColors;
+
+        private List<GameObject> m_JammoParts;
 
         private Dictionary<string, Vector2> m_EyeTypes;
 
@@ -101,21 +105,40 @@ namespace Game
             if(PhotonNetwork.IsMasterClient)
                 Utility.RaiseEvent(false, EventType.IncreaseInstantiatedPlayerCount, ReceiverGroup.All, EventCaching.DoNotCache, true); // PlaygroundManager catches this.
 
+
+
             if(photonView.IsMine)
             {
                 m_ActiveHeadPiece = PlayerPrefs.GetInt("HeadItem", 0);
                 m_ActiveEyePiece = PlayerPrefs.GetInt("EyeItem", 0);
+                m_ActiveBodyColor = PlayerPrefs.GetInt("BodyColor", 0);
                 photonView.RPC("SetupCustomizationParams", RpcTarget.AllBuffered);
                 photonView.RPC("ActivateProperHeadItem", RpcTarget.AllBuffered, m_ActiveHeadPiece);
                 photonView.RPC("ActivateProperEyeItem", RpcTarget.AllBuffered, m_ActiveEyePiece);
+                photonView.RPC("ActivateProperBodyColor", RpcTarget.AllBuffered, m_ActiveBodyColor);
             }
         }
         [PunRPC]
         void SetupCustomizationParams()
         {
+            m_JammoParts = new List<GameObject>();
+            foreach (Transform transform in transform)
+            {
+                if (transform.gameObject.name != "Armature.001" && transform.gameObject.name != "head_eyes_low" && transform.gameObject.name != "NameCanvas" && transform.gameObject.name != "StaminaCanvas"
+                    && transform.gameObject.name != "PowerupCanvas" && transform.gameObject.name != "StunVFX")
+                {
+                    m_JammoParts.Add(transform.gameObject);
+                }
+            }
+
             m_HeadItems = new Dictionary<int, GameObject>();
             m_EyeItems = new Dictionary<int, GameObject>();
+            m_BodyColors = new Dictionary<int, Material>();
 
+            m_BodyColors.Add(0, Resources.Load<Material>("JammoMaterials/m_jammo_metal_red"));
+            m_BodyColors.Add(1, Resources.Load<Material>("JammoMaterials/m_jammo_metal_black"));
+            m_BodyColors.Add(2, Resources.Load<Material>("JammoMaterials/m_jammo_metal_blue"));
+            m_BodyColors.Add(3, Resources.Load<Material>("JammoMaterials/m_jammo_metal_yellow"));
             m_HeadItems.Add(1, RecursiveFindChild(transform, "Top Hat").gameObject);
             m_EyeItems.Add(1, RecursiveFindChild(transform, "Glasses").gameObject);
         }
@@ -750,6 +773,14 @@ namespace Game
         {
             if (photonView.IsMine)
                 photonView.RPC("DeactivateDoubleJump_RPC", RpcTarget.All);
+        }
+        [PunRPC]
+        void ActivateProperBodyColor(int colorID)
+        {
+            for (int i = 0; i < m_JammoParts.Count; i++)
+            {
+                m_JammoParts[i].GetComponent<Renderer>().material = m_BodyColors[colorID];
+            }
         }
         [PunRPC]
         void ActivateProperHeadItem(int itemID)
