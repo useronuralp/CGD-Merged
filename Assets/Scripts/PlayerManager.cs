@@ -135,11 +135,21 @@ namespace Game
             m_EyeItems = new Dictionary<int, GameObject>();
             m_BodyColors = new Dictionary<int, Material>();
 
+            //Body---------
             m_BodyColors.Add(0, Resources.Load<Material>("JammoMaterials/m_jammo_metal_red"));
             m_BodyColors.Add(1, Resources.Load<Material>("JammoMaterials/m_jammo_metal_black"));
             m_BodyColors.Add(2, Resources.Load<Material>("JammoMaterials/m_jammo_metal_blue"));
             m_BodyColors.Add(3, Resources.Load<Material>("JammoMaterials/m_jammo_metal_yellow"));
+            //Head----------------
             m_HeadItems.Add(1, RecursiveFindChild(transform, "Top Hat").gameObject);
+            m_HeadItems.Add(2, RecursiveFindChild(transform, "FlamingoHat").gameObject);
+            m_HeadItems.Add(3, RecursiveFindChild(transform, "SafariHat").gameObject);
+            m_HeadItems.Add(4, RecursiveFindChild(transform, "WolfEars").gameObject);
+            m_HeadItems.Add(5, RecursiveFindChild(transform, "StrawHat").gameObject);
+            m_HeadItems.Add(6, RecursiveFindChild(transform, "VikingHat").gameObject);
+            m_HeadItems.Add(7, RecursiveFindChild(transform, "Headphones").gameObject);
+            m_HeadItems.Add(8, RecursiveFindChild(transform, "Crown").gameObject);
+            //Eyes------------------
             m_EyeItems.Add(1, RecursiveFindChild(transform, "Glasses").gameObject);
         }
         private void OnDestroy()

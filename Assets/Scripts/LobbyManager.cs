@@ -67,6 +67,14 @@ namespace Game
 
             m_CustomizationPanel = GameObject.Find("Canvas").transform.Find("CustomizationPanel").gameObject;
             m_HeadItems.Add(1, RecursiveFindChild(m_Jammo.transform, "Top Hat").gameObject);
+            m_HeadItems.Add(2, RecursiveFindChild(m_Jammo.transform, "FlamingoHat").gameObject);
+            m_HeadItems.Add(3, RecursiveFindChild(m_Jammo.transform, "SafariHat").gameObject);
+            m_HeadItems.Add(4, RecursiveFindChild(m_Jammo.transform, "WolfEars").gameObject);
+            m_HeadItems.Add(5, RecursiveFindChild(m_Jammo.transform, "StrawHat").gameObject);
+            m_HeadItems.Add(6, RecursiveFindChild(m_Jammo.transform, "VikingHat").gameObject);
+            m_HeadItems.Add(7, RecursiveFindChild(m_Jammo.transform, "Headphones").gameObject);
+            m_HeadItems.Add(8, RecursiveFindChild(m_Jammo.transform, "Crown").gameObject);
+
             m_EyeItems.Add(1, RecursiveFindChild(m_Jammo.transform, "Glasses").gameObject);
             m_BodyColors.Add(0, Resources.Load<Material>("JammoMaterials/m_jammo_metal_red"));
             m_BodyColors.Add(1, Resources.Load<Material>("JammoMaterials/m_jammo_metal_black"));
@@ -205,7 +213,7 @@ namespace Game
         }
         public void OnHeadRightButtonPressed()
         {
-            m_ActiveHeadPiece = ++m_ActiveHeadPiece % 2;
+            m_ActiveHeadPiece = ++m_ActiveHeadPiece % (m_HeadItems.Count + 1);
             PlayerPrefs.SetInt("HeadItem", m_ActiveHeadPiece);
             ActivateProperItem(m_HeadItems, m_ActiveHeadPiece);
         }
@@ -219,7 +227,7 @@ namespace Game
         }
         public void OnEyesRightButtonPressed()
         {
-            m_ActiveEyePiece = ++m_ActiveEyePiece % 2;
+            m_ActiveEyePiece = ++m_ActiveEyePiece % (m_EyeItems.Count + 1);
             PlayerPrefs.SetInt("EyeItem", m_ActiveEyePiece);
             ActivateProperItem(m_EyeItems, m_ActiveEyePiece);
         }
@@ -233,7 +241,7 @@ namespace Game
         }
         public void OnColorRightButtonPressed()
         {
-            m_ActiveBodyColor = ++m_ActiveBodyColor % 4;
+            m_ActiveBodyColor = ++m_ActiveBodyColor % m_BodyColors.Count;
             PlayerPrefs.SetInt("BodyColor", m_ActiveBodyColor);
             ActivateBodyColor(m_ActiveBodyColor);
         }
