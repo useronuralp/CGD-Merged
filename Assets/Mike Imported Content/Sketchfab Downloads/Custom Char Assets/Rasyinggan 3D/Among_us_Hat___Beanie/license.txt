@@ -1,0 +1,11 @@
+Model Information:
+* title:	Among us Hat : Beanie
+* source:	https://sketchfab.com/3d-models/among-us-hat-beanie-f84bed6224d948e6a2abd130e43062ca
+* author:	Rasyinggan 3D (https://sketchfab.com/naraharoufi)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Among us Hat : Beanie" (https://sketchfab.com/3d-models/among-us-hat-beanie-f84bed6224d948e6a2abd130e43062ca) by Rasyinggan 3D (https://sketchfab.com/naraharoufi) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

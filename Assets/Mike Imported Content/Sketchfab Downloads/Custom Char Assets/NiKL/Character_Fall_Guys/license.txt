@@ -1,0 +1,11 @@
+Model Information:
+* title:	Character Fall Guys
+* source:	https://sketchfab.com/3d-models/character-fall-guys-ef87f4ad07094dbcabd1e22d977df0db
+* author:	NiKL (https://sketchfab.com/nknikl)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Character Fall Guys" (https://sketchfab.com/3d-models/character-fall-guys-ef87f4ad07094dbcabd1e22d977df0db) by NiKL (https://sketchfab.com/nknikl) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

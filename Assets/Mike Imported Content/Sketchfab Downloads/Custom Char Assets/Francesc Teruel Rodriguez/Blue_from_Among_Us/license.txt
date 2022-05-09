@@ -1,0 +1,11 @@
+Model Information:
+* title:	"Blue" from Among Us
+* source:	https://sketchfab.com/3d-models/blue-from-among-us-e7a91ed71f454706aea028919d0f5ce5
+* author:	Francesc Teruel Rodríguez (https://sketchfab.com/francesctr4)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on ""Blue" from Among Us" (https://sketchfab.com/3d-models/blue-from-among-us-e7a91ed71f454706aea028919d0f5ce5) by Francesc Teruel Rodríguez (https://sketchfab.com/francesctr4) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

@@ -1,0 +1,11 @@
+Model Information:
+* title:	Among us Comms Headphones
+* source:	https://sketchfab.com/3d-models/among-us-comms-headphones-86bf38611f6c4022b488673abb3e669c
+* author:	Jesse Ragos (https://sketchfab.com/jkiel9)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Among us Comms Headphones" (https://sketchfab.com/3d-models/among-us-comms-headphones-86bf38611f6c4022b488673abb3e669c) by Jesse Ragos (https://sketchfab.com/jkiel9) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
