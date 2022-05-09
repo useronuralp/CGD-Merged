@@ -557,7 +557,6 @@ namespace Game
         {
             var soundSource = PhotonNetwork.Instantiate("SoundSource", spawnLocation, spawnRotation);
             AudioClip clip = Resources.Load<AudioClip>("Audio/Powerup/PowerupCollect");
-            soundSource.GetComponent<AudioSource>().PlayOneShot(clip);
             yield return new WaitForSeconds(clip.length);
             PhotonNetwork.Destroy(soundSource);
         }
