@@ -7,7 +7,7 @@ public class Confetti : MonoBehaviour
     private bool DoOnce = true;
     private GameObject m_Sys;
     private GameObject m_SmokeSys;
-    private float m_BeatDropTime = 9.7f;
+    private float m_BeatDropTime = 9.8f;
     private AudioSource m_AudioSource;
     private AudioClip m_CannonSound;
     void Start()

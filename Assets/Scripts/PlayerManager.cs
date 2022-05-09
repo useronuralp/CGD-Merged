@@ -46,6 +46,12 @@ namespace Game
         private bool                m_HasWaterBalloon = false;
         private bool                m_HasForcefield = false;
         private bool                m_HasDoubleJump = false;
+        //Customization--------------------
+        private int m_ActiveHeadPiece;
+        private int m_ActiveEyePiece;
+
+        private Dictionary<int, GameObject> m_HeadItems;
+        private Dictionary<int, GameObject> m_EyeItems;
 
         private Dictionary<string, Vector2> m_EyeTypes;
 
@@ -94,12 +100,31 @@ namespace Game
             }
             if(PhotonNetwork.IsMasterClient)
                 Utility.RaiseEvent(false, EventType.IncreaseInstantiatedPlayerCount, ReceiverGroup.All, EventCaching.DoNotCache, true); // PlaygroundManager catches this.
-            
+
+            if(photonView.IsMine)
+            {
+                m_ActiveHeadPiece = PlayerPrefs.GetInt("HeadItem", 0);
+                m_ActiveEyePiece = PlayerPrefs.GetInt("EyeItem", 0);
+                photonView.RPC("SetupCustomizationParams", RpcTarget.AllBuffered);
+                photonView.RPC("ActivateProperHeadItem", RpcTarget.AllBuffered, m_ActiveHeadPiece);
+                photonView.RPC("ActivateProperEyeItem", RpcTarget.AllBuffered, m_ActiveEyePiece);
+            }
+        }
+        [PunRPC]
+        void SetupCustomizationParams()
+        {
+            m_HeadItems = new Dictionary<int, GameObject>();
+            m_EyeItems = new Dictionary<int, GameObject>();
+
+            m_HeadItems.Add(1, RecursiveFindChild(transform, "Top Hat").gameObject);
+            m_EyeItems.Add(1, RecursiveFindChild(transform, "Glasses").gameObject);
         }
         private void OnDestroy()
         {
             EventManager.Get().OnChangeEyes -= OnChangeEyes;
-            if(m_HasCrossedTheFinishLine)
+            EventManager.Get().OnDeactivateWaterballoon -= OnDeactivateWaterballoon;
+            EventManager.Get().OnDeactivateDoubleJump -= OnDeactivateDoubleJump;
+            if (m_HasCrossedTheFinishLine)
             {
                 s_CrossedFinishLineCount--;
             }
@@ -107,7 +132,7 @@ namespace Game
         private void Update()
         {
             //if(photonView.IsMine)
-            //    Debug.LogError(m_IsBulldog);
+            //    Debug.LogError(m_TutorialTextTimer);
 
             //if(Input.GetKeyDown(KeyCode.J) && photonView.IsMine)
             //{
@@ -368,6 +393,20 @@ namespace Game
                 object[] data = (object[])photonEvent.CustomData;
                 photonView.RPC("Init", RpcTarget.All, (Vector3)data[0], (Vector3)data[1], (float)data[2]);
             }
+            else if(photonEvent.Code == (byte)EventType.BulldogsWin)
+            {
+                if(!m_HasCrossedTheFinishLine)
+                {
+                    BecomeBulldogByEndOfRound();
+                }
+            }
+            else if (photonEvent.Code == (byte)EventType.RunnersWin)
+            {
+                if (!m_HasCrossedTheFinishLine)
+                {
+                    BecomeBulldogByEndOfRound();
+                }
+            }
         }
         public void ResetSpawnNumbering()
         {
@@ -385,7 +424,6 @@ namespace Game
                 if (collision.transform.CompareTag("Bulldog") && !m_IsBulldog)
                 {
                 
-                    Debug.LogError("Collided with bulldog");
                     BecomeBulldogByCollisionHelper();
                     collision.transform.GetComponent<PlayerManager>().photonView.RPC("IncreaseScore", RpcTarget.All, 5.0f);
                 }
@@ -712,6 +750,73 @@ namespace Game
         {
             if (photonView.IsMine)
                 photonView.RPC("DeactivateDoubleJump_RPC", RpcTarget.All);
+        }
+        [PunRPC]
+        void ActivateProperHeadItem(int itemID)
+        {
+            if (itemID == 0)
+            {
+                foreach (var pair in m_HeadItems)
+                {
+                    pair.Value.SetActive(false);
+                }
+                return;
+            }
+            foreach (var pair in m_HeadItems)
+            {
+                if (pair.Key == itemID)
+                {
+                    pair.Value.SetActive(true);
+                }
+                else
+                {
+                    pair.Value.SetActive(false);
+                }
+            }
+        }
+        [PunRPC]
+        void ActivateProperEyeItem(int itemID)
+        {
+            if (itemID == 0)
+            {
+                foreach (var pair in m_EyeItems)
+                {
+                    pair.Value.SetActive(false);
+                }
+                return;
+            }
+            foreach (var pair in m_EyeItems)
+            {
+                if (pair.Key == itemID)
+                {
+                    pair.Value.SetActive(true);
+                }
+                else
+                {
+                    pair.Value.SetActive(false);
+                }
+            }
+        }
+
+        Transform RecursiveFindChild(Transform parent, string childName)
+        {
+            foreach (Transform child in parent)
+            {
+                if (child.name == childName)
+                {
+                    Debug.Log("Found! -->" + child.name);
+                    return child;
+                }
+                else
+                {
+                    Transform found = RecursiveFindChild(child, childName);
+                    if (found != null)
+                    {
+                        return found;
+                    }
+                }
+            }
+            return null;
         }
     }
 }

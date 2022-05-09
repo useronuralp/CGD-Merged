@@ -119,6 +119,10 @@ MonoBehaviour:
   - DeactivateWaterballoon_RPC
   - ActivateDoubleJump_RPC
   - ActivateWaterballoon_RPC
+  - SetActive_RPC
+  - ActivateProperEyeItem
+  - ActivateProperHeadItem
+  - SetupCustomizationParams
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

@@ -19,6 +19,19 @@ namespace Game
         private GameObject m_Camera;
         private Animator m_CameraAnimator;
         private bool m_IsCameraMoved = false;
+        private bool m_IsCameraZoomed = false;
+        private GameObject m_GameTitle;
+        private Animator m_JammoAnimator;
+        private GameObject m_Jammo;
+
+        private int m_ActiveHeadPiece = 0;
+        private int m_ActiveEyePiece = 0;
+
+        private Dictionary<int, GameObject> m_HeadItems;
+        private Dictionary<int, GameObject> m_EyeItems;
+
+        private GameObject m_CustomizationBackButton;
+        private GameObject m_CustomizationPanel;
 
         [SerializeField]
         private byte MaxPlayersPerRoom = 20;
@@ -34,6 +47,23 @@ namespace Game
         }
         private void Start()
         {
+
+            m_Jammo = GameObject.Find("Custom Rogue Bot").transform.Find("Jammo_Player").gameObject;
+            m_HeadItems = new Dictionary<int, GameObject>();
+            m_EyeItems = new Dictionary<int, GameObject>();
+
+            m_CustomizationPanel = GameObject.Find("Canvas").transform.Find("CustomizationPanel").gameObject;
+            m_HeadItems.Add(1, RecursiveFindChild(m_Jammo.transform, "Top Hat").gameObject);
+            m_EyeItems.Add(1, RecursiveFindChild(m_Jammo.transform, "Glasses").gameObject);
+
+            m_ActiveHeadPiece = PlayerPrefs.GetInt("HeadItem", 0);
+            m_ActiveEyePiece = PlayerPrefs.GetInt("EyeItem", 0);
+            ActivateProperItem(m_HeadItems, m_ActiveHeadPiece);
+            ActivateProperItem(m_EyeItems, m_ActiveEyePiece);
+
+            m_CustomizationBackButton = GameObject.Find("UI").transform.Find("LobbyPanel").Find("CustomizationBackButton").gameObject;
+            m_GameTitle = GameObject.Find("TitleCanvas").transform.Find("Title").gameObject;
+            m_JammoAnimator = m_Jammo.transform.GetComponent<Animator>();
             m_Camera = GameObject.Find("Main Camera");
             m_CameraAnimator = m_Camera.GetComponent<Animator>();
         }
@@ -41,13 +71,16 @@ namespace Game
 
         public void OnCreateRoomButtonPressed()
         {
-            EnterRoomNamePanel.SetActive(true);
-            RoomsPanel.SetActive(false);
-            EnterRoomNamePanel.transform.Find("InputField").GetComponent<TMP_InputField>().text = PhotonNetwork.NickName + "'s Game";
-            if(!m_IsCameraMoved)
+            if(!m_IsCameraZoomed)
             {
-                m_IsCameraMoved = true;
-                m_CameraAnimator.SetTrigger("MoveRight");
+                EnterRoomNamePanel.SetActive(true);
+                RoomsPanel.SetActive(false);
+                EnterRoomNamePanel.transform.Find("InputField").GetComponent<TMP_InputField>().text = PhotonNetwork.NickName + "'s Game";
+                if(!m_IsCameraMoved)
+                {
+                    m_IsCameraMoved = true;
+                    m_CameraAnimator.SetTrigger("MoveRight");
+                }
             }
         }
         public void OnRoomNameEntered(string name)
@@ -65,12 +98,15 @@ namespace Game
         }
         public void OnJoinRoomButtonPressed()
         {
-            RoomsPanel.SetActive(true);
-            EnterRoomNamePanel.SetActive(false);
-            if (!m_IsCameraMoved)
+            if(!m_IsCameraZoomed)
             {
-                m_IsCameraMoved = true;
-                m_CameraAnimator.SetTrigger("MoveRight");
+                RoomsPanel.SetActive(true);
+                EnterRoomNamePanel.SetActive(false);
+                if (!m_IsCameraMoved)
+                {
+                    m_IsCameraMoved = true;
+                    m_CameraAnimator.SetTrigger("MoveRight");
+                }
             }
         }
         public void OnRoomListBackButtonPressed()
@@ -94,6 +130,89 @@ namespace Game
                 m_IsCameraMoved = false;
                 m_CameraAnimator.SetTrigger("MoveBack");
             }
+        }
+        public void OnCustomizeButtonPressed()
+        {
+            if(!m_IsCameraMoved && !m_IsCameraZoomed)
+            {
+                m_CustomizationPanel.SetActive(true);
+                m_JammoAnimator.SetTrigger("Idle");
+                m_CameraAnimator.SetTrigger("Zoom");
+                m_GameTitle.SetActive(false);
+                StartCoroutine(ButtonSwitch(true));
+                m_IsCameraZoomed = true;
+            }
+        }
+        public void OnCustomizationBackButtonPressed()
+        {
+            if(m_IsCameraZoomed)
+            {
+                m_CustomizationPanel.SetActive(false);
+                m_JammoAnimator.SetTrigger(Random.Range(1,10).ToString());
+                m_CameraAnimator.SetTrigger("ZoomBack");
+                m_GameTitle.SetActive(true);
+                StartCoroutine(ButtonSwitch(false));
+                m_IsCameraZoomed = false;
+            }
+        }
+        void ActivateProperItem(Dictionary<int, GameObject> dict, int itemID)
+        {
+            if(itemID == 0)
+            {
+                foreach (var pair in dict)
+                {
+                    pair.Value.SetActive(false);
+                }
+                return;
+            }
+            foreach (var pair in dict)
+            {
+                if (pair.Key == itemID)
+                {
+                    pair.Value.SetActive(true);
+                }
+                else
+                {
+                    pair.Value.SetActive(false);
+                }
+            }
+        }
+        public void OnHeadRightButtonPressed()
+        {
+            m_ActiveHeadPiece = ++m_ActiveHeadPiece % 2;
+            Debug.Log(m_ActiveHeadPiece);
+            PlayerPrefs.SetInt("HeadItem", m_ActiveHeadPiece);
+            ActivateProperItem(m_HeadItems, m_ActiveHeadPiece);
+        }
+        public void OnHeadLeftButtonPressed()
+        {
+            m_ActiveHeadPiece = Mathf.Abs(--m_ActiveHeadPiece % 2);
+            Debug.Log(m_ActiveHeadPiece);
+            PlayerPrefs.SetInt("HeadItem", m_ActiveHeadPiece);
+            ActivateProperItem(m_HeadItems, m_ActiveHeadPiece);
+        }
+        public void OnEyesRightButtonPressed()
+        {
+            m_ActiveEyePiece = ++m_ActiveEyePiece % 2;
+            Debug.Log(m_ActiveEyePiece);
+            PlayerPrefs.SetInt("EyeItem", m_ActiveEyePiece);
+            ActivateProperItem(m_EyeItems, m_ActiveEyePiece);
+        }
+        public void OnEyesLeftButtonPressed()
+        {
+            m_ActiveEyePiece = Mathf.Abs(--m_ActiveEyePiece % 2);
+            Debug.Log(m_ActiveEyePiece);
+            PlayerPrefs.SetInt("EyeItem", m_ActiveEyePiece);
+            ActivateProperItem(m_EyeItems, m_ActiveEyePiece);
+        }
+        IEnumerator ButtonSwitch(bool onOrOff)
+        {
+            yield return new WaitForSeconds(0.3f);
+            if(onOrOff)
+                m_CustomizationBackButton.SetActive(true);
+            else
+                m_CustomizationBackButton.SetActive(false);
+
         }
         public void JoinRoom(Transform button)
         {
@@ -180,6 +299,26 @@ namespace Game
                     _cachedRoomList.Add(info.Name, info);
                 }
             }
+        }
+        Transform RecursiveFindChild(Transform parent, string childName)
+        {
+            foreach (Transform child in parent)
+            {
+                if (child.name == childName)
+                {
+                    Debug.Log("Found! -->" + child.name);
+                    return child;
+                }
+                else
+                {
+                    Transform found = RecursiveFindChild(child, childName);
+                    if (found != null)
+                    {
+                        return found;
+                    }
+                }
+            }
+            return null;
         }
     }
 }
