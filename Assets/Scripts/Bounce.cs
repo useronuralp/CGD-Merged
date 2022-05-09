@@ -9,7 +9,7 @@ public class Bounce : MonoBehaviour
 	{
         foreach (ContactPoint contact in collision.contacts)
         {
-            if (collision.gameObject.CompareTag("Player"))
+            if (collision.gameObject.CompareTag("Player") || collision.gameObject.CompareTag("Bulldog") || collision.gameObject.CompareTag("Runner"))
             {
                 Vector3 hitDir = contact.normal;
                 collision.gameObject.GetComponent<Game.Ragdoll>().Bounce(hitDir, contact.point, bounceForce);

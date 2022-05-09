@@ -1084,7 +1084,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_PlayerPrefab: {fileID: 1641250961126847321, guid: a4ab845e2f20b99419cc7b123e37c47e, type: 3}
-  m_TimerDuration: 60
+  m_TimerDuration: 300
   PlayerButtonPrefab: {fileID: 2449405032712789373, guid: ac840feaeca5aae4395239da806375ec, type: 3}
   PlayerScorePrefab: {fileID: 2449405032712789373, guid: 96bd27a82f580cc4fb1b0a2a2ec8bec9, type: 3}
   m_BulldogSpawnPoint: {x: -24.48, y: 4.92, z: -134.294}
