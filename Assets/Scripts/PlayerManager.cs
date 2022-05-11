@@ -224,7 +224,7 @@ namespace Game
         private void SetNickname(string name)
         {
             m_PlayerName = name;
-            transform.Find("NameCanvas").Find("PlayerName").GetComponent<TextMeshProUGUI>().text = name + " (0)";
+            transform.Find("NameCanvas").Find("PlayerName").GetComponent<TextMeshProUGUI>().text = name;
         }
         public void InitialSetup(int bulldogID)
         {
@@ -466,7 +466,7 @@ namespace Game
         public void IncreaseScore(float amount)
         {
             m_Score += amount;
-            transform.Find("NameCanvas").Find("PlayerName").GetComponent<TextMeshProUGUI>().text = name + " (" + m_Score.ToString() + ")";
+            //transform.Find("NameCanvas").Find("PlayerName").GetComponent<TextMeshProUGUI>().text = name + " (" + m_Score.ToString() + ")";
             EventManager.Get().UpdateScores();
         }
         private void OnTriggerEnter(Collider other)
@@ -844,7 +844,6 @@ namespace Game
             {
                 if (child.name == childName)
                 {
-                    Debug.Log("Found! -->" + child.name);
                     return child;
                 }
                 else

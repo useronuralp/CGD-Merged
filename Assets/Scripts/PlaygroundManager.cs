@@ -74,7 +74,6 @@ namespace Game
         private bool             m_IsSpectating = false;
 
         private List<KeyValuePair<float, string>> m_Players;
-
         private List<GameObject>     m_PlayerButtons;
 
         private bool DoOnce = true;

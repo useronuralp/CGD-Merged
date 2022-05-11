@@ -37,7 +37,6 @@ namespace Game
         private bool               DoOnce = false;
         private bool               DoOnce2 = true;
         private bool               DoOnce3 = true;
-        private bool               DoOnce4 = true;
 
         private bool               m_HasDoubleJump = false;
 
@@ -121,7 +120,7 @@ namespace Game
             {
                 return;
             }
-            if(isEmoting())
+            if(IsEmoting())
             {
                 DoOnce = true;
                 m_IsInputEnabled = false;
@@ -469,7 +468,7 @@ namespace Game
         {
             m_IsRagdolling = false;
         }
-        bool isEmoting()
+        bool IsEmoting()
         {
             foreach(string name in m_GestureNames)
             {

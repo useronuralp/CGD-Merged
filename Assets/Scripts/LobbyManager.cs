@@ -354,7 +354,6 @@ namespace Game
             {
                 if (child.name == childName)
                 {
-                    Debug.Log("Found! -->" + child.name);
                     return child;
                 }
                 else
