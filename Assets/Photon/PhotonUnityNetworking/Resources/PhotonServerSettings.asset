@@ -125,6 +125,9 @@ MonoBehaviour:
   - SetupCustomizationParams
   - ActivateProperBodyColor
   - PlayOneShot_RPC
+  - Disappear
+  - Appear_RPC
+  - Disappear_RPC
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

@@ -15,7 +15,7 @@ public class FallPlat : MonoBehaviour
 	}
 	void OnCollisionEnter(Collision collision)
 	{
-		if (collision.gameObject.CompareTag("Player"))
+		if (collision.gameObject.CompareTag("Player") || collision.gameObject.CompareTag("Bulldog") || collision.gameObject.CompareTag("Runner"))
 			StartCoroutine(Disappear(fallTime));
 	}
 	IEnumerator Disappear(float time)

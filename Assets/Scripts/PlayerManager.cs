@@ -171,7 +171,7 @@ namespace Game
             //{
             //    GetStunned();
             //}
-            if(photonView.IsMine)
+            if (photonView.IsMine)
             {
                 if(m_BubbleCountdown)
                 {
@@ -520,26 +520,26 @@ namespace Game
             }
             if (PhotonNetwork.IsMasterClient)
             {
-                if(other.CompareTag("Powerup_DoubleJump") && !m_HasDoubleJump)
+                if (other.CompareTag("Powerup_DoubleJump") && !m_HasDoubleJump)
                 {
-                    photonView.RPC("Powerup", RpcTarget.All, PowerupType.DoubleJump, m_PlayerName);
+                    photonView.RPC("Powerup", RpcTarget.All, PowerupType.DoubleJump);
                     StartCoroutine(SpawnPowerupParticles(other.transform.position, other.transform.rotation));
                     StartCoroutine(SpawnSoundSource(other.transform.position, other.transform.rotation));
-                    PhotonNetwork.Destroy(other.gameObject);
+                    other.transform.GetComponent<Powerup>().TriggerDisappear();
                 }
                 else if(other.CompareTag("Powerup_WaterBaloon") && !m_HasWaterBalloon && (!m_IsBulldog || CompareTag("Player")))
                 {
-                    photonView.RPC("Powerup", RpcTarget.All, PowerupType.WaterBaloon, m_PlayerName);
+                    photonView.RPC("Powerup", RpcTarget.All, PowerupType.WaterBaloon);
                     StartCoroutine(SpawnPowerupParticles(other.transform.position, other.transform.rotation));
                     StartCoroutine(SpawnSoundSource(other.transform.position, other.transform.rotation));
-                    PhotonNetwork.Destroy(other.gameObject);
+                    other.transform.GetComponent<Powerup>().TriggerDisappear();
                 }
-                else if (other.CompareTag("Powerup_Forcefield") && !m_HasForcefield &&(!m_IsBulldog || CompareTag("Player")))
+                else if (other.CompareTag("Powerup_Forcefield") && !m_HasForcefield && (!m_IsBulldog || CompareTag("Player")))
                 {
-                    photonView.RPC("Powerup", RpcTarget.All, PowerupType.Forcefield, m_PlayerName);
+                    photonView.RPC("Powerup", RpcTarget.All, PowerupType.Forcefield);
                     StartCoroutine(SpawnPowerupParticles(other.transform.position, other.transform.rotation));
                     StartCoroutine(SpawnSoundSource(other.transform.position, other.transform.rotation));
-                    PhotonNetwork.Destroy(other.gameObject);
+                    other.transform.GetComponent<Powerup>().TriggerDisappear();
                 }
             }
         }
@@ -571,7 +571,7 @@ namespace Game
             PhotonNetwork.Destroy(soundSource);
         }
         [PunRPC]
-        public void Powerup(PowerupType type, string name)
+        public void Powerup(PowerupType type)
         {
             switch(type)
             {

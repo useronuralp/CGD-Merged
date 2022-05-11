@@ -136,7 +136,7 @@ namespace Game
                 if (PlayerManager.s_LocalPlayerInstance == null)
                 {
                     Debug.LogFormat("We are Instantiating LocalPlayer from {0}", SceneManagerHelper.ActiveSceneName);
-                    m_LocalPlayer = PhotonNetwork.Instantiate(m_PlayerPrefab.name, new Vector3(0f, 5f, 0f), Quaternion.identity, 0); //Store the local player here.
+                    m_LocalPlayer = PhotonNetwork.Instantiate(m_PlayerPrefab.name, GameObject.Find("RunnerSpectatorZone").transform.position, Quaternion.identity, 0); //Store the local player here.
                 }
                 else
                 {
@@ -155,12 +155,15 @@ namespace Game
         }
         private void Update()
         {
-            //if(PhotonNetwork.IsMasterClient)
-            //{
-            //    Debug.LogError("Bulldog: " + PlayerManager.s_BulldogCount);
-            //    Debug.LogError("Runner: " + PlayerManager.s_RunnerCount);
-            //    Debug.LogError("Crossed Number:" + PlayerManager.s_CrossedFinishLineCount);
-            //}
+            if (PhotonNetwork.IsMasterClient)
+            {
+                m_LevelSyncInterval -= Time.deltaTime;
+                if (m_LevelSyncInterval < 0)
+                {
+                    m_LevelSyncInterval = 2.0f;
+                    EventManager.Get().SyncObstacles();
+                }
+            }
             if (m_HasGameEnded)
             {
                 if(m_Timer <= 0)
@@ -204,15 +207,6 @@ namespace Game
                     var playerCamera = GameObject.Find("PlayerCamera");
                     playerCamera.GetComponent<Cinemachine.CinemachineFreeLook>().Priority = 0;
                     spectateCamera.GetComponent<Cinemachine.CinemachineVirtualCamera>().Priority = 1;
-                }
-            }
-            if (PhotonNetwork.IsMasterClient)
-            {
-                m_LevelSyncInterval -= Time.deltaTime;
-                if (m_LevelSyncInterval < 0)
-                {
-                    m_LevelSyncInterval = 2.0f;
-                    EventManager.Get().SyncObstacles();
                 }
             }
             // Master - Client sets up the game here.

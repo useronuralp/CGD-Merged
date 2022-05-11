@@ -11,7 +11,7 @@ namespace Game
     {
         private Rigidbody          m_RigidBody;
         private float              m_MovementSpeed = 4.0f;
-        private float              m_JumpForce = 7.0f;
+        private float              m_JumpForce = 6.0f;
         private bool               m_IsInputEnabled;
         private Vector3            m_MovementDirection;
         private UnityEngine.Camera m_TpsCamera;
@@ -49,7 +49,7 @@ namespace Game
         private float m_RollTime = 0.5f;
         private float m_DashSpeed = 7.0f;
 
-        private float m_FallMultiplier = 2.5f;
+        private float m_FallMultiplier = 3.0f;
         private float m_BabyJumpMultiplier = 2.0f;
         private bool m_IsDashing = false;
         private float m_DistToGround;
@@ -230,10 +230,6 @@ namespace Game
             if (m_RigidBody.velocity.y < 0)
             {
                 m_RigidBody.velocity += (m_FallMultiplier - 1) * Physics.gravity.y * Time.deltaTime * Vector3.up;
-            }
-            else if (m_RigidBody.velocity.y > 0 && !Input.GetKey(KeyCode.Space))
-            {
-                m_RigidBody.velocity += (m_BabyJumpMultiplier - 1) * Physics.gravity.y * Time.deltaTime * Vector3.up;
             }
 
             bool result = IsGrounded();
