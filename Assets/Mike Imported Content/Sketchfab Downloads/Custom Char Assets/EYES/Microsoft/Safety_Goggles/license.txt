@@ -1,0 +1,11 @@
+Model Information:
+* title:	Safety Goggles
+* source:	https://sketchfab.com/3d-models/safety-goggles-355f1e119c33452ea9e2e8d306360435
+* author:	Microsoft (https://sketchfab.com/microsoft)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Safety Goggles" (https://sketchfab.com/3d-models/safety-goggles-355f1e119c33452ea9e2e8d306360435) by Microsoft (https://sketchfab.com/microsoft) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

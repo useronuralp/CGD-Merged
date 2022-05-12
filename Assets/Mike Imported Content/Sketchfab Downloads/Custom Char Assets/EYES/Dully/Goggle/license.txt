@@ -1,0 +1,11 @@
+Model Information:
+* title:	Goggle
+* source:	https://sketchfab.com/3d-models/goggle-8bbec2eca09e45d18d4e43e47d81b728
+* author:	Dully (https://sketchfab.com/Dullys)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Goggle" (https://sketchfab.com/3d-models/goggle-8bbec2eca09e45d18d4e43e47d81b728) by Dully (https://sketchfab.com/Dullys) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

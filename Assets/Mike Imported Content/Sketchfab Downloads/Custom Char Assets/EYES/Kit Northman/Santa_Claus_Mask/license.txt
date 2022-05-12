@@ -1,0 +1,11 @@
+Model Information:
+* title:	Santa Claus Mask
+* source:	https://sketchfab.com/3d-models/santa-claus-mask-215f31854ef24c2eb116f1426a4c1d9c
+* author:	Kit Northman (https://sketchfab.com/KitNorthman)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Santa Claus Mask" (https://sketchfab.com/3d-models/santa-claus-mask-215f31854ef24c2eb116f1426a4c1d9c) by Kit Northman (https://sketchfab.com/KitNorthman) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
