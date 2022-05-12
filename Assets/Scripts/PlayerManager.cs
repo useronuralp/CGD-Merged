@@ -321,9 +321,9 @@ namespace Game
                 s_RunnerCount++;
             }
             if (m_IsBulldog)
-                transform.eulerAngles = new Vector3(0, 180, 0);
-            else
                 transform.eulerAngles = new Vector3(0, 0, 0);
+            else
+                transform.eulerAngles = new Vector3(0, 180, 0);
 
             m_Rigidbody.velocity = Vector3.zero;
             m_Rigidbody.angularVelocity = Vector3.zero;

@@ -29,7 +29,10 @@ public class EventManager : MonoBehaviourPunCallbacks
     public event Action OnStunWearsOff;
     public event Action OnDeactivateWaterballoon;
     public event Action OnDeactivateDoubleJump;
-
+    public event Action OnMoveUpLongRoad;
+    public event Action OnMovedDownLongRoad;
+    public event Action OnMoveUpTreetopKingdom;
+    public event Action OnMoveDownTreetopKingdom;
     private void Awake()
     {
         s_Instance = this;
@@ -125,6 +128,22 @@ public class EventManager : MonoBehaviourPunCallbacks
     public void DeactivateDoubleJump()
     {
         OnDeactivateDoubleJump?.Invoke();
+    }
+    public void MoveUp_LongRoad()
+    {
+        OnMoveUpLongRoad?.Invoke();
+    }
+    public void MoveDown_LongRoad()
+    {
+        OnMovedDownLongRoad?.Invoke();
+    }
+    public void MoveUp_TreetopKingdom()
+    {
+        OnMoveUpTreetopKingdom?.Invoke();
+    }
+    public void MoveDown_TreetopKingdom()
+    {
+        OnMoveDownTreetopKingdom?.Invoke();
     }
     //Singleton getter---------------------
     public static EventManager Get()

@@ -73,6 +73,12 @@ namespace Game
         static public int        m_NumberOfInitiallySetupPlayers = 0;
         private bool             m_IsSpectating = false;
 
+        private int              m_RoundNumber = 1;
+
+        private GameObject       m_TreetopKingdom;
+        private GameObject       m_TheLongRoad;
+        private int              m_ActiveLevel = 1; //1 Road - 2 Jungle.
+
         private List<KeyValuePair<float, string>> m_Players;
         private List<GameObject>     m_PlayerButtons;
 
@@ -99,6 +105,9 @@ namespace Game
         private Cinemachine.CinemachineFreeLook m_FreeLookCamera;
         void Start()
         {
+            m_TheLongRoad = GameObject.Find("The_Long_Road");
+            m_TreetopKingdom = GameObject.Find("Treetop Kingdom");
+            m_TreetopKingdom.SetActive(false);
             m_GameEndText = GameObject.Find("UI").transform.Find("Canvas").Find("EndOfGameTimer").GetComponent<TextMeshProUGUI>();
             m_ScorePanelContent = GameObject.Find("UI").transform.Find("Canvas").Find("ScorePanel").Find("Content").gameObject;
             m_Players = new List<KeyValuePair<float, string>>();
@@ -401,9 +410,40 @@ namespace Game
         {
             m_LocalPlayer.GetComponent<PlayerManager>().Respawn();
         }
+        void SwapLevels()
+        {
+            if(m_ActiveLevel == 1)
+            {
+                EventManager.Get().MoveDown_LongRoad();
+                m_TreetopKingdom.SetActive(true);
+                m_ActiveLevel = 2;
+            }
+            else
+            {
+                EventManager.Get().MoveDown_TreetopKingdom();
+                m_TheLongRoad.SetActive(true);
+                m_ActiveLevel = 1;
+            }
+        }
+        IEnumerator TreeKingdomMoveup()
+        {
+            yield return new WaitForEndOfFrame();
+            m_TreetopKingdom.GetComponent<TreetopKingdom>().MoveUp();
+        }
+        IEnumerator LongRoadMoveup()
+        {
+            yield return new WaitForEndOfFrame();
+            m_TheLongRoad.GetComponent<TheLongRoad>().MoveUp();
+        }
         [PunRPC]
         public void ResetRound()
         {
+            if(m_RoundNumber > 0)
+            {
+                SwapLevels();
+                m_RoundNumber = 1;
+            }
+            m_RoundNumber++;
             m_CountdownText.gameObject.SetActive(true);
             m_FreeLookCamera.m_XAxis.m_InputAxisName = "Mouse X";
             m_FreeLookCamera.m_YAxis.m_InputAxisName = "Mouse Y";
