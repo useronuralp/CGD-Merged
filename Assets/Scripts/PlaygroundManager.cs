@@ -335,6 +335,7 @@ namespace Game
         [PunRPC]
         public void StartCountdown()
         {
+            GameObject.Find("IndicatorCanvas").SetActive(false);
             m_FreeLookCamera.m_RecenterToTargetHeading.m_enabled = false;
             m_CountdownText.gameObject.SetActive(true);
             m_StartCountdown = true;

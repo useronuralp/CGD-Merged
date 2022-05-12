@@ -411,16 +411,17 @@ namespace Game
                     {
                         m_TutorialTextCountdown = true;
                         m_TutorialText.SetActive(true);
-                        m_TutorialText.transform.Find("TutorialText").GetComponent<TextMeshProUGUI>().text = "Catch as many Rogue Bots as possible by tackling them!";
+                        m_TutorialText.transform.Find("TutorialText").GetComponent<TextMeshProUGUI>().text = "Catch as many Rogue Bots as possible by tackling them! \n\nPress 'Q' to use your team specific dash!";
                     }
                     else
                     {
                         m_TutorialTextCountdown = true;
                         m_TutorialText.SetActive(true);
-                        m_TutorialText.transform.Find("TutorialText").GetComponent<TextMeshProUGUI>().text = "Get to the finish line without Security Bots touching you!";
+                        m_TutorialText.transform.Find("TutorialText").GetComponent<TextMeshProUGUI>().text = "Get to the finish line without Security Bots touching you!\n\nPress 'Q' to use your team specific dash!";
                     }
                 }
             }
+
             else if(photonEvent.Code == (byte)EventType.RoundEnd)
             {
                 m_HasRoundStarted = false;
@@ -591,7 +592,6 @@ namespace Game
                     if (photonView.IsMine)
                     {
                         PhotonNetwork.Instantiate("Forcefield", new Vector3(transform.position.x, transform.position.y + 0.5f, transform.position.z), transform.rotation);
-                        transform.Find("PowerupCanvas").Find("ForcefieldIcon").gameObject.SetActive(true);
                         photonView.RPC("ActivateForcefield_RPC", RpcTarget.All);
                     }
                     break;
@@ -776,7 +776,6 @@ namespace Game
         {
             if(photonView.IsMine)
             {
-                transform.Find("PowerupCanvas").Find("ForcefieldIcon").gameObject.SetActive(false);
                 photonView.RPC("DeactivateForcefield_RPC", RpcTarget.All);
             }
         }

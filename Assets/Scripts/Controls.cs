@@ -285,12 +285,12 @@ namespace Game
         void DeactivateTargeting()
         {
             DoOnce2 = true;
-            m_CinemachineFLComponent.m_Orbits[0].m_Height = 5;
-            m_CinemachineFLComponent.m_Orbits[0].m_Radius = 6;
+            m_CinemachineFLComponent.m_Orbits[0].m_Height = 8;
+            m_CinemachineFLComponent.m_Orbits[0].m_Radius = 4;
             m_CinemachineFLComponent.m_Orbits[1].m_Height = 5;
             m_CinemachineFLComponent.m_Orbits[1].m_Radius = 6;
-            m_CinemachineFLComponent.m_Orbits[2].m_Height = 0.5f;
-            m_CinemachineFLComponent.m_Orbits[2].m_Radius = 6;
+            m_CinemachineFLComponent.m_Orbits[2].m_Height = 0.1f;
+            m_CinemachineFLComponent.m_Orbits[2].m_Radius = 3;
             m_CinemachineFLComponent.m_XAxis.m_MaxSpeed = 500;
             m_CinemachineFLComponent.m_YAxis.m_MaxSpeed = 6;
             m_MovementSpeed = 4.0f;
