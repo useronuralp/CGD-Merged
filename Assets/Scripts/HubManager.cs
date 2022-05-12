@@ -58,7 +58,7 @@ namespace Game
                 }
             }
             m_StartGameButton = m_UI.transform.Find("Canvas").Find("StartGameButton").gameObject;
-            m_PlayerCountText = m_UI.transform.Find("Canvas").Find("PlayerCount").GetComponent<TextMeshProUGUI>();
+            m_PlayerCountText = m_UI.transform.Find("Canvas").Find("PlayerCount").Find("PlayerCountText").GetComponent<TextMeshProUGUI>();
         }
         private void Update()
         {

@@ -157,6 +157,11 @@ namespace Game
             m_HeadItems.Add(8, RecursiveFindChild(transform, "Crown").gameObject);
             //Eyes------------------
             m_EyeItems.Add(1, RecursiveFindChild(transform, "Glasses").gameObject);
+            m_EyeItems.Add(2, RecursiveFindChild(transform, "ThuglifeGlasses").gameObject);
+            m_EyeItems.Add(3, RecursiveFindChild(transform, "SafetyGoggles").gameObject);
+            m_EyeItems.Add(4, RecursiveFindChild(transform, "Monocle").gameObject);
+            m_EyeItems.Add(5, RecursiveFindChild(transform, "MajorasMask").gameObject);
+            m_EyeItems.Add(6, RecursiveFindChild(transform, "FuturisticGlasses").gameObject);
         }
         private void OnDestroy()
         {

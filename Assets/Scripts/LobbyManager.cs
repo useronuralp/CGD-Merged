@@ -76,6 +76,14 @@ namespace Game
             m_HeadItems.Add(8, RecursiveFindChild(m_Jammo.transform, "Crown").gameObject);
 
             m_EyeItems.Add(1, RecursiveFindChild(m_Jammo.transform, "Glasses").gameObject);
+            m_EyeItems.Add(2, RecursiveFindChild(m_Jammo.transform, "ThuglifeGlasses").gameObject);
+            m_EyeItems.Add(3, RecursiveFindChild(m_Jammo.transform, "SafetyGoggles").gameObject);
+            m_EyeItems.Add(4, RecursiveFindChild(m_Jammo.transform, "Monocle").gameObject);
+            m_EyeItems.Add(5, RecursiveFindChild(m_Jammo.transform, "MajorasMask").gameObject);
+            m_EyeItems.Add(6, RecursiveFindChild(m_Jammo.transform, "FuturisticGlasses").gameObject);
+
+
+
             m_BodyColors.Add(0, Resources.Load<Material>("JammoMaterials/m_jammo_metal_red"));
             m_BodyColors.Add(1, Resources.Load<Material>("JammoMaterials/m_jammo_metal_black"));
             m_BodyColors.Add(2, Resources.Load<Material>("JammoMaterials/m_jammo_metal_blue"));
