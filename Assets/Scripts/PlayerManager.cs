@@ -5,6 +5,7 @@ using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine.SceneManagement;
 using TMPro;
+using UnityEngine.UI;
 namespace Game
 {
     public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
@@ -24,7 +25,7 @@ namespace Game
         private bool                m_HasCrossedTheFinishLine = false;
         public bool                 IsSpectating = false;
         private Material            m_JammoEyesMaterial;
-        private TextMeshProUGUI     m_PowerupName;
+        private GameObject          m_PowerupIcon;
         static public string        s_LatestPlayerWhoCrossedTheline = "None";
         private float               m_Score = 0;
         private string              m_PlayerName;
@@ -46,6 +47,11 @@ namespace Game
         private bool                m_HasWaterBalloon = false;
         private bool                m_HasForcefield = false;
         private bool                m_HasDoubleJump = false;
+
+        public Texture2D m_WaterBalloonTexture;
+        public Texture2D m_ForcefieldTexture;
+        public Texture2D m_DoubleJumpTexture;
+        public Texture2D m_NoneTexture;
         //Customization--------------------
         private int m_ActiveHeadPiece;
         private int m_ActiveEyePiece;
@@ -71,9 +77,9 @@ namespace Game
         }
         private void Start()
         {
-            m_TutorialText = GameObject.Find("UI").transform.Find("Canvas").Find("TutorialText").gameObject;
+            m_TutorialText = GameObject.Find("UI").transform.Find("Canvas").Find("TutorialTextObj").gameObject;
             m_StunTimer = m_StunCD;
-            m_PowerupName = transform.Find("PowerupCanvas").Find("PowerupSlot").Find("PowerupName").GetComponent<TextMeshProUGUI>();
+            m_PowerupIcon = transform.Find("PowerupCanvas").Find("PowerupSlot").gameObject;
             m_PowerupBubble = transform.Find("PowerupCanvas").Find("Bubble").gameObject;
             if (photonView.IsMine)
                 transform.Find("PowerupCanvas").Find("PowerupSlot").gameObject.SetActive(true);
@@ -164,13 +170,6 @@ namespace Game
         }
         private void Update()
         {
-            //if(photonView.IsMine)
-            //    Debug.LogError(m_TutorialTextTimer);
-
-            //if(Input.GetKeyDown(KeyCode.J) && photonView.IsMine)
-            //{
-            //    GetStunned();
-            //}
             if (photonView.IsMine)
             {
                 if(m_BubbleCountdown)
@@ -407,13 +406,13 @@ namespace Game
                     {
                         m_TutorialTextCountdown = true;
                         m_TutorialText.SetActive(true);
-                        m_TutorialText.GetComponent<TextMeshProUGUI>().text = "Catch as many Rogue Bots as possible by tackling them!";
+                        m_TutorialText.transform.Find("TutorialText").GetComponent<TextMeshProUGUI>().text = "Catch as many Rogue Bots as possible by tackling them!";
                     }
                     else
                     {
                         m_TutorialTextCountdown = true;
                         m_TutorialText.SetActive(true);
-                        m_TutorialText.GetComponent<TextMeshProUGUI>().text = "Get to the finish line without Security Bots touching you!";
+                        m_TutorialText.transform.Find("TutorialText").GetComponent<TextMeshProUGUI>().text = "Get to the finish line without Security Bots touching you!";
                     }
                 }
             }
@@ -508,7 +507,7 @@ namespace Game
                         {
                             // TODO: Spawn at the location where this character was 5 seconds ago.
                             transform.position = new Vector3(0, 5, 0);
-                            m_Rigidbody.velocity = new Vector3(0, 0, 0);
+                            m_Rigidbody.velocity = new Vector3(-24.67f, 9, -124.8f);
                         }
                         else
                         {
@@ -698,20 +697,22 @@ namespace Game
         void DeactivateForcefield_RPC()
         {
             m_HasForcefield = false;
+            if(photonView.IsMine)
+                m_PowerupIcon.GetComponent<RawImage>().texture = m_NoneTexture;
         }
         [PunRPC]
         void DeactivateWaterballoon_RPC()
         {
             m_HasWaterBalloon = false;
             if (photonView.IsMine)
-                m_PowerupName.text = "None";
+                m_PowerupIcon.GetComponent<RawImage>().texture = m_NoneTexture;
         }
         [PunRPC]
         void DeactivateDoubleJump_RPC()
         {
             m_HasDoubleJump = false;
             if(photonView.IsMine)
-                m_PowerupName.text = "None";
+                m_PowerupIcon.GetComponent<RawImage>().texture = m_NoneTexture;
         }
         [PunRPC]
         void ActivateForcefield_RPC()
@@ -726,6 +727,7 @@ namespace Game
                     m_BubbleCountdown = true;
                     m_PowerupBubbleTimer = 7;
                 }
+                m_PowerupIcon.GetComponent<RawImage>().texture = m_ForcefieldTexture;
             }
             m_HasForcefield = true;
         }
@@ -743,7 +745,7 @@ namespace Game
                     m_BubbleCountdown = true;
                     m_PowerupBubbleTimer = 7;
                 }
-                m_PowerupName.text = "Water Baloon";
+                m_PowerupIcon.GetComponent<RawImage>().texture = m_WaterBalloonTexture;
             }
             m_HasWaterBalloon = true;
         }
@@ -762,7 +764,7 @@ namespace Game
                     m_BubbleCountdown = true;
                     m_PowerupBubbleTimer = 7;
                 }
-                m_PowerupName.text = "Double Jump";
+                m_PowerupIcon.GetComponent<RawImage>().texture = m_DoubleJumpTexture;
             }
         }
         public void DeactivateForcefield()

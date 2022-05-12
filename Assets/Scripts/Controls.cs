@@ -28,7 +28,6 @@ namespace Game
         private Cinemachine.CinemachineFreeLook m_CinemachineFLComponent;
 
 
-        private TextMeshProUGUI    m_PowerupName;
 
         private int                m_JumpCount = 0;
 
@@ -88,7 +87,6 @@ namespace Game
 
             m_CinemachineFLComponent = GameObject.Find("PlayerCamera").transform.GetComponent<Cinemachine.CinemachineFreeLook>();
             m_Reticle = GameObject.Find("UI").transform.Find("Canvas").Find("Reticle").gameObject;
-            m_PowerupName = transform.Find("PowerupCanvas").Find("PowerupSlot").Find("PowerupName").GetComponent<TextMeshProUGUI>();
             m_EmoteSounds = new Dictionary<string, AudioClip>();
             m_EmoteSounds.Add("Gesture_Whatever", Resources.Load<AudioClip>("Audio/Gesture Sounds/Whatever"));
             m_EmoteSounds.Add("Gesture_Laughing", Resources.Load<AudioClip>("Audio/Gesture Sounds/Laughing"));

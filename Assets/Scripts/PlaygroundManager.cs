@@ -56,7 +56,7 @@ namespace Game
         public static int        m_FirstBulldogID = -1;
         private GameObject       m_LocalPlayer;
         [SerializeField]         
-        private float            m_TimerDuration = 300;
+        private float            m_TimerDuration = 180;
         private float            m_Timer;
         private TextMeshProUGUI  m_TimerText;
                                  
@@ -135,7 +135,7 @@ namespace Game
             m_PlayerList = GameObject.Find("UI").transform.Find("Canvas").Find("PlayerList").gameObject;
             m_CountdownText.text = "3";
             m_CountdownText.gameObject.SetActive(false);
-            m_TimerText.text = "5:00";
+            m_TimerText.text = "3:00";
             if (m_PlayerPrefab == null)
             {
                 Debug.LogError("<Color=Red><b>Missing</b></Color> playerPrefab Reference. Please set it up in GameObject 'Game Manager'", this);
@@ -448,7 +448,7 @@ namespace Game
             m_FreeLookCamera.m_XAxis.m_InputAxisName = "Mouse X";
             m_FreeLookCamera.m_YAxis.m_InputAxisName = "Mouse Y";
             m_Timer = m_TimerDuration;
-            m_TimerText.text = "5:00";
+            m_TimerText.text = "3:00";
             m_FreeLookCamera.m_RecenterToTargetHeading.m_enabled = true;
             s_HasRoundStarted = false;
             PlayerManager.s_CrossedFinishLineCount = 0;
