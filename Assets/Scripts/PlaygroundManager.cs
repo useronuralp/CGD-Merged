@@ -75,6 +75,8 @@ namespace Game
 
         private int              m_RoundNumber = 1;
 
+        private GameObject m_IndicatorCanvas;
+
         private GameObject       m_TreetopKingdom;
         private GameObject       m_TheLongRoad;
         private int              m_ActiveLevel = 1; //1 Road - 2 Jungle.
@@ -106,6 +108,7 @@ namespace Game
         private Cinemachine.CinemachineFreeLook m_FreeLookCamera;
         void Start()
         {
+            m_IndicatorCanvas = GameObject.Find("IndicatorCanvas");
             m_TheLongRoad = GameObject.Find("The_Long_Road");
             m_TreetopKingdom = GameObject.Find("Treetop Kingdom");
             m_TreetopKingdom.SetActive(false);
@@ -335,8 +338,8 @@ namespace Game
         [PunRPC]
         public void StartCountdown()
         {
-            if(GameObject.Find("IndicatorCanvas").activeInHierarchy)
-                GameObject.Find("IndicatorCanvas").SetActive(false);
+            if(m_IndicatorCanvas.activeInHierarchy)
+                m_IndicatorCanvas.SetActive(false);
             m_FreeLookCamera.m_RecenterToTargetHeading.m_enabled = false;
             m_CountdownText.gameObject.SetActive(true);
             m_StartCountdown = true;
