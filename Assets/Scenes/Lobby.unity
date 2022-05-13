@@ -25688,7 +25688,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1838145496
 RectTransform:
   m_ObjectHideFlags: 0
@@ -27084,7 +27084,7 @@ GameObject:
   - component: {fileID: 2033119075}
   - component: {fileID: 2033119074}
   m_Layer: 5
-  m_Name: Eyes
+  m_Name: Face
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -27131,9 +27131,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Eyes
-
-'
+  m_text: Face
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 4cf725ea641010c4b8e6e6c6e33b6530, type: 2}
   m_sharedMaterial: {fileID: 5902213354934293674, guid: 4cf725ea641010c4b8e6e6c6e33b6530, type: 2}
