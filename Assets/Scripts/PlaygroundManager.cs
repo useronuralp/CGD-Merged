@@ -375,7 +375,7 @@ namespace Game
             }
             else if(photonEvent.Code == (byte)EventType.StartedSpectating)
             {
-
+                photonView.RPC("UpdateSpectatorList", RpcTarget.All);
             }
         }
         [PunRPC]
@@ -530,6 +530,11 @@ namespace Game
                     EventManager.Get().DisableInput(SenderType.Standard);
                 }
             }
+        }
+        [PunRPC]
+        void UpdateSpectatorList()
+        {
+            DoOnce3 = true;
         }
         void OnStartingSpectating()
         {
