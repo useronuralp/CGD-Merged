@@ -166,8 +166,6 @@ namespace Game
         {
             if (PhotonNetwork.IsMasterClient)
             {
-                if (Input.GetKeyDown(KeyCode.R))
-                    RestartRound();
                 m_LevelSyncInterval -= Time.deltaTime;
                 if (m_LevelSyncInterval < 0)
                 {
