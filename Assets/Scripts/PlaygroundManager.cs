@@ -79,6 +79,7 @@ namespace Game
         private GameObject       m_TheLongRoad;
         private int              m_ActiveLevel = 1; //1 Road - 2 Jungle.
 
+
         private List<KeyValuePair<float, string>> m_Players;
         private List<GameObject>     m_PlayerButtons;
 
@@ -157,7 +158,6 @@ namespace Game
                 GameObject.Find("UI").transform.Find("Canvas").transform.Find("ReturnToHub").gameObject.SetActive(false);
             }
         }
-
         public override void OnLeftRoom()
         {
             SceneManager.LoadScene(1);
@@ -416,12 +416,14 @@ namespace Game
             if(m_ActiveLevel == 1)
             {
                 EventManager.Get().MoveDown_LongRoad();
+                EventManager.Get().ChangeTrack(2);
                 m_TreetopKingdom.SetActive(true);
                 m_ActiveLevel = 2;
             }
             else
             {
                 EventManager.Get().MoveDown_TreetopKingdom();
+                EventManager.Get().ChangeTrack(1);
                 m_TheLongRoad.SetActive(true);
                 m_ActiveLevel = 1;
             }
@@ -439,7 +441,7 @@ namespace Game
         [PunRPC]
         public void ResetRound()
         {
-            if(m_RoundNumber > 0)
+            if(m_RoundNumber > 1)
             {
                 SwapLevels();
                 m_RoundNumber = 1;

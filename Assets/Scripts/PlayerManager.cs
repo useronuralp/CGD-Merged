@@ -517,8 +517,8 @@ namespace Game
                         if(m_IsBulldog)
                         {
                             // TODO: Spawn at the location where this character was 5 seconds ago.
-                            transform.position = new Vector3(0, 5, 0);
-                            m_Rigidbody.velocity = new Vector3(-24.67f, 9, -124.8f);
+                            transform.position = new Vector3(-24.67f, 9, -124.8f);
+                            m_Rigidbody.velocity = new Vector3(0,0,0);
                         }
                         else
                         {

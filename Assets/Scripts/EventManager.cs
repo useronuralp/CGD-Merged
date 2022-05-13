@@ -35,6 +35,7 @@ public class EventManager : MonoBehaviourPunCallbacks
     public event Action OnMoveDownTreetopKingdom;
     public event Action OnMakeHatTransparent;
     public event Action OnMakeHatOpaque;
+    public event Action<int> OnChangeTrack;
     private void Awake()
     {
         s_Instance = this;
@@ -154,6 +155,10 @@ public class EventManager : MonoBehaviourPunCallbacks
     public void MakeHatOpaque()
     {
         OnMakeHatOpaque?.Invoke();
+    }
+    public void ChangeTrack(int trackID)
+    {
+        OnChangeTrack?.Invoke(trackID);
     }
     //Singleton getter---------------------
     public static EventManager Get()
