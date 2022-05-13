@@ -245,7 +245,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 2800000, guid: 9dd48ac46e1370c4aa5647e861a45821, type: 3}
+  m_Texture: {fileID: 2800000, guid: 861fd6bb4beb89b4fafd0a303d3ee55f, type: 3}
   m_UVRect:
     serializedVersion: 2
     x: 0
@@ -478,7 +478,7 @@ MonoBehaviour:
   m_WaterBalloonTexture: {fileID: 2800000, guid: 96a14289c7c29e3469e45acb77f57964, type: 3}
   m_ForcefieldTexture: {fileID: 2800000, guid: 0ea689b5fadad0a42a5c3534b4bb183f, type: 3}
   m_DoubleJumpTexture: {fileID: 2800000, guid: b93643fd6dac96e4f95002361dae2c0e, type: 3}
-  m_NoneTexture: {fileID: 2800000, guid: 9dd48ac46e1370c4aa5647e861a45821, type: 3}
+  m_NoneTexture: {fileID: 2800000, guid: 861fd6bb4beb89b4fafd0a303d3ee55f, type: 3}
 --- !u!114 &1610014314942109524
 MonoBehaviour:
   m_ObjectHideFlags: 0
