@@ -274,6 +274,8 @@ namespace Game
             m_CinemachineFLComponent.m_YAxis.m_MaxSpeed = 3;
             if (DoOnce2)
             {
+                if(photonView.IsMine)
+                    EventManager.Get().MakeHatTransparent();
                 DoOnce2 = false;
                 m_CinemachineFLComponent.m_YAxis.Value = 0.35f;
                 transform.Find("NameCanvas").Find("PlayerName").gameObject.SetActive(false);
@@ -285,6 +287,8 @@ namespace Game
         void DeactivateTargeting()
         {
             DoOnce2 = true;
+            if(photonView.IsMine)
+                EventManager.Get().MakeHatOpaque();
             m_CinemachineFLComponent.m_Orbits[0].m_Height = 8;
             m_CinemachineFLComponent.m_Orbits[0].m_Radius = 4;
             m_CinemachineFLComponent.m_Orbits[1].m_Height = 5;

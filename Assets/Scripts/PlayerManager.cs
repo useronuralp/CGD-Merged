@@ -6,6 +6,7 @@ using Photon.Realtime;
 using UnityEngine.SceneManagement;
 using TMPro;
 using UnityEngine.UI;
+using UnityEngine.Rendering;
 namespace Game
 {
     public class PlayerManager : MonoBehaviourPunCallbacks, IOnEventCallback
@@ -99,6 +100,8 @@ namespace Game
             EventManager.Get().OnChangeEyes += OnChangeEyes;
             EventManager.Get().OnDeactivateWaterballoon += OnDeactivateWaterballoon;
             EventManager.Get().OnDeactivateDoubleJump+= OnDeactivateDoubleJump;
+            EventManager.Get().OnMakeHatOpaque += OnMakeHatOpaque;
+            EventManager.Get().OnMakeHatTransparent += OnMakeHatTransparent;
             m_EvenSpawnPoints = new Dictionary<int, int>() { {0,1}, {2,2}, {4,3}, {6,4}, {8,5}, {10,6}, {12,7}, {14,8}, {16,9}, {18,10} };
             m_OddSpawnPoints  = new Dictionary<int, int>() { {1,1}, {3,2}, {5,3}, {7,4}, {9,5}, {11,6}, {13,7}, {15,8}, {17,9}, {19,10} };
             m_Rigidbody = GetComponent<Rigidbody>();
@@ -168,6 +171,8 @@ namespace Game
             EventManager.Get().OnChangeEyes -= OnChangeEyes;
             EventManager.Get().OnDeactivateWaterballoon -= OnDeactivateWaterballoon;
             EventManager.Get().OnDeactivateDoubleJump -= OnDeactivateDoubleJump;
+            EventManager.Get().OnMakeHatOpaque -= OnMakeHatOpaque;
+            EventManager.Get().OnMakeHatTransparent -= OnMakeHatTransparent;
             if (m_HasCrossedTheFinishLine)
             {
                 s_CrossedFinishLineCount--;
@@ -843,7 +848,61 @@ namespace Game
                 }
             }
         }
+        private void OnMakeHatTransparent()
+        {
+            RecursiveMaterialSetter(GameObject.Find("Armature.001").transform, 1);
+        }
+        private void OnMakeHatOpaque()
+        {
+            RecursiveMaterialSetter(GameObject.Find("Armature.001").transform, 2);
+        }
+        private void ToOpaqueMode(Material material)
+        {
+            material.SetOverrideTag("RenderType", "");
+            material.SetInt("_SrcBlend", (int)BlendMode.One);
+            material.SetInt("_DstBlend", (int)BlendMode.Zero);
+            material.SetInt("_ZWrite", 1);
+            material.DisableKeyword("_ALPHATEST_ON");
+            material.DisableKeyword("_ALPHABLEND_ON");
+            material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+            material.renderQueue = -1;
+            Color originalColor = material.GetColor("_Color");
+            Debug.Log(originalColor);
+            material.SetColor("_Color", new Color(originalColor.r, originalColor.g, originalColor.b, 1.0f));
+        }
 
+        private void ToFadeMode(Material material)
+        {
+            material.SetOverrideTag("RenderType", "Transparent");
+            material.SetInt("_SrcBlend", (int)BlendMode.SrcAlpha);
+            material.SetInt("_DstBlend", (int)BlendMode.OneMinusSrcAlpha);
+            material.SetInt("_ZWrite", 0);
+            material.DisableKeyword("_ALPHATEST_ON");
+            material.EnableKeyword("_ALPHABLEND_ON");
+            material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+            material.renderQueue = (int)RenderQueue.Transparent;
+            Color originalColor = material.GetColor("_Color");
+            Debug.Log(originalColor);
+            material.SetColor("_Color", new Color(originalColor.r, originalColor.g, originalColor.b, 0.3f));
+        }
+        private void RecursiveMaterialSetter(Transform parent, int fadeOrTransparent)
+        {
+            foreach (Transform child in parent)
+            {
+                if(child.GetComponent<Renderer>() != null)
+                {
+                    Material[] mats = child.GetComponent<Renderer>().materials;
+                    for(int i = 0; i < mats.Length; i++)
+                    {
+                        if (fadeOrTransparent == 1)
+                            ToFadeMode(mats[i]);
+                        else
+                            ToOpaqueMode(mats[i]);
+                    }
+                }
+                RecursiveMaterialSetter(child, fadeOrTransparent);
+            }
+        }
         Transform RecursiveFindChild(Transform parent, string childName)
         {
             foreach (Transform child in parent)

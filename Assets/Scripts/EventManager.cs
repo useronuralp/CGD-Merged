@@ -33,6 +33,8 @@ public class EventManager : MonoBehaviourPunCallbacks
     public event Action OnMovedDownLongRoad;
     public event Action OnMoveUpTreetopKingdom;
     public event Action OnMoveDownTreetopKingdom;
+    public event Action OnMakeHatTransparent;
+    public event Action OnMakeHatOpaque;
     private void Awake()
     {
         s_Instance = this;
@@ -144,6 +146,14 @@ public class EventManager : MonoBehaviourPunCallbacks
     public void MoveDown_TreetopKingdom()
     {
         OnMoveDownTreetopKingdom?.Invoke();
+    }
+    public void MakeHatTransparent()
+    {
+        OnMakeHatTransparent?.Invoke();
+    }
+    public void MakeHatOpaque()
+    {
+        OnMakeHatOpaque?.Invoke();
     }
     //Singleton getter---------------------
     public static EventManager Get()
