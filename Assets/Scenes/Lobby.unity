@@ -895,7 +895,7 @@ RectTransform:
   m_GameObject: {fileID: 101197132}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -1}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.2, y: 1.2, z: 1.2}
   m_Children:
   - {fileID: 1314238953}
   - {fileID: 1935521995}
@@ -23339,8 +23339,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -37, y: 61.084}
-  m_SizeDelta: {x: 506.471, y: 251.228}
+  m_AnchoredPosition: {x: -37, y: 48.662}
+  m_SizeDelta: {x: 506.471, y: 276.073}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1314238954
 MonoBehaviour:
@@ -23362,7 +23362,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 0}
+  m_Texture: {fileID: 2800000, guid: e6eea4f7cbb9f46f79c0fe06180fa5b3, type: 3}
   m_UVRect:
     serializedVersion: 2
     x: 0
@@ -23621,7 +23621,7 @@ RectTransform:
   m_GameObject: {fileID: 1375124159}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -1.0000149}
-  m_LocalScale: {x: 0.8, y: 0.8, z: 1}
+  m_LocalScale: {x: 1.2, y: 1.2, z: 1.2}
   m_Children:
   - {fileID: 2085701246}
   - {fileID: 1693247777}
@@ -23631,7 +23631,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -438.0002, y: -6}
+  m_AnchoredPosition: {x: -438.00018, y: 78.738884}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!223 &1375124161
@@ -24810,7 +24810,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 0}
+  m_Texture: {fileID: 2800000, guid: 10d23572713d041c596abf5c00be11dc, type: 3}
   m_UVRect:
     serializedVersion: 2
     x: 0
@@ -25685,7 +25685,7 @@ RectTransform:
   m_GameObject: {fileID: 1838145495}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 113.45314}
-  m_LocalScale: {x: 0.09673651, y: 0.09673651, z: 0.09673651}
+  m_LocalScale: {x: 0.19347303, y: 0.19347303, z: 0.19347303}
   m_Children:
   - {fileID: 1221004820}
   - {fileID: 2033119073}
@@ -25718,7 +25718,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 0}
+  m_Texture: {fileID: 2800000, guid: 8c56c5fdda92b4c74b0de742465022b5, type: 3}
   m_UVRect:
     serializedVersion: 2
     x: 0
