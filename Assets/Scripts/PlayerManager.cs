@@ -706,27 +706,34 @@ namespace Game
         [PunRPC]
         void DeactivateForcefield_RPC()
         {
-            m_HasForcefield = false;
             if(photonView.IsMine)
+            {
+                m_HasForcefield = false;
                 m_PowerupIcon.GetComponent<RawImage>().texture = m_NoneTexture;
+            }
         }
         [PunRPC]
         void DeactivateWaterballoon_RPC()
         {
             m_HasWaterBalloon = false;
             if (photonView.IsMine)
+            {
                 m_PowerupIcon.GetComponent<RawImage>().texture = m_NoneTexture;
+            }
         }
         [PunRPC]
         void DeactivateDoubleJump_RPC()
         {
             m_HasDoubleJump = false;
             if(photonView.IsMine)
+            {
                 m_PowerupIcon.GetComponent<RawImage>().texture = m_NoneTexture;
+            }
         }
         [PunRPC]
         void ActivateForcefield_RPC()
         {
+            m_HasForcefield = true;
             if(photonView.IsMine)
             {
                 if (m_FirstForcefieldPickup)
@@ -739,14 +746,13 @@ namespace Game
                 }
                 m_PowerupIcon.GetComponent<RawImage>().texture = m_ForcefieldTexture;
             }
-            m_HasForcefield = true;
         }
         [PunRPC]
         void ActivateWaterballoon_RPC()
         {
-            EventManager.Get().ActivateWaterBaloon();
             if(photonView.IsMine)
             {
+                EventManager.Get().ActivateWaterBaloon();
                 if (m_FirstWaterballoonPickup)
                 {
                     m_FirstWaterballoonPickup = false;
@@ -762,10 +768,10 @@ namespace Game
         [PunRPC]
         void ActivateDoubleJump_RPC()
         {
-            EventManager.Get().ActivateDoubleJump();
             m_HasDoubleJump = true;
             if(photonView.IsMine)
             {
+                EventManager.Get().ActivateDoubleJump();
                 if(m_FirstDoublejumpPickup)
                 {
                     m_FirstDoublejumpPickup = false;

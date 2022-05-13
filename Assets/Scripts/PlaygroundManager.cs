@@ -166,6 +166,8 @@ namespace Game
         {
             if (PhotonNetwork.IsMasterClient)
             {
+                if (Input.GetKeyDown(KeyCode.R))
+                    RestartRound();
                 m_LevelSyncInterval -= Time.deltaTime;
                 if (m_LevelSyncInterval < 0)
                 {
@@ -335,7 +337,8 @@ namespace Game
         [PunRPC]
         public void StartCountdown()
         {
-            GameObject.Find("IndicatorCanvas").SetActive(false);
+            if(GameObject.Find("IndicatorCanvas").activeInHierarchy)
+                GameObject.Find("IndicatorCanvas").SetActive(false);
             m_FreeLookCamera.m_RecenterToTargetHeading.m_enabled = false;
             m_CountdownText.gameObject.SetActive(true);
             m_StartCountdown = true;
