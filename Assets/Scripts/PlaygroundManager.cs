@@ -318,6 +318,11 @@ namespace Game
                 m_LocalPlayer.GetComponent<PlayerManager>().ResetSpawnNumbering();
                 Utility.RaiseEvent(new object[] {m_BulldogSpawnPoint, m_RunnerSpawnPoint, m_SpawnSpacing}, EventType.InitPlayers, ReceiverGroup.All, EventCaching.DoNotCache, true);
                 Utility.RaiseEvent(false, EventType.PlacePlayers, ReceiverGroup.All, EventCaching.DoNotCache, true);
+                if (m_RoundNumber > 1)
+                {
+                    photonView.RPC("SwapLevels", RpcTarget.All);
+                    m_RoundNumber = 1;
+                }
                 photonView.RPC("StartCountdown", RpcTarget.All);
             }
         }
@@ -415,6 +420,7 @@ namespace Game
         {
             m_LocalPlayer.GetComponent<PlayerManager>().Respawn();
         }
+        [PunRPC]
         void SwapLevels()
         {
             if(m_ActiveLevel == 1)
@@ -445,11 +451,6 @@ namespace Game
         [PunRPC]
         public void ResetRound()
         {
-            if(m_RoundNumber > 1)
-            {
-                SwapLevels();
-                m_RoundNumber = 1;
-            }
             m_RoundNumber++;
             m_CountdownText.gameObject.SetActive(true);
             m_FreeLookCamera.m_XAxis.m_InputAxisName = "Mouse X";

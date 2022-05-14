@@ -706,9 +706,9 @@ namespace Game
         [PunRPC]
         void DeactivateForcefield_RPC()
         {
+            m_HasForcefield = false;
             if(photonView.IsMine)
             {
-                m_HasForcefield = false;
                 m_PowerupIcon.GetComponent<RawImage>().texture = m_NoneTexture;
             }
         }

@@ -129,6 +129,7 @@ MonoBehaviour:
   - Appear_RPC
   - Disappear_RPC
   - UpdateSpectatorList
+  - SwapLevels
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1
