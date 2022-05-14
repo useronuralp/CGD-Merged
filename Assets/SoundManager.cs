@@ -49,7 +49,7 @@ public class SoundManager : MonoBehaviour
         else if (trackID == 3)
             StartCoroutine(TransitionToNoMusic());
     }
-    public IEnumerator TransitionToNoMusic() //This fnc is useful for slowly fading in / out a music track.
+    public IEnumerator TransitionToNoMusic() 
     {
         StartCoroutine(StartFade(0.5f, 0.0f));
         yield return new WaitWhile(() => m_IsTransitioning == true);
@@ -58,7 +58,7 @@ public class SoundManager : MonoBehaviour
         StartCoroutine(StartFade(1, 0.1f));
         yield break;
     }
-    public IEnumerator TransitionToSecondLevel() //This fnc is useful for slowly fading in / out a music track.
+    public IEnumerator TransitionToSecondLevel() 
     {
         StartCoroutine(StartFade(2, 0.0f));
         yield return new WaitWhile(() => m_IsTransitioning == true);
@@ -68,7 +68,7 @@ public class SoundManager : MonoBehaviour
         yield return new WaitWhile(() => m_IsTransitioning == true);
         yield break;
     }
-    public IEnumerator TransitionToFirstLevel() //This fnc is useful for slowly fading in / out a music track.
+    public IEnumerator TransitionToFirstLevel() 
     {
         StartCoroutine(StartFade(2, 0.0f));
         yield return new WaitWhile(() => m_IsTransitioning == true);
