@@ -81,6 +81,11 @@ namespace Game
         private GameObject       m_TheLongRoad;
         private int              m_ActiveLevel = 1; //1 Road - 2 Jungle.
 
+        private AudioClip m_SecurityWinSound;
+        private AudioClip m_RogueWinSound;
+        private AudioClip[] m_FireworkSound;
+        private AudioSource m_AudioSource;
+
 
         private List<KeyValuePair<float, string>> m_Players;
         private List<GameObject>     m_PlayerButtons;
@@ -106,8 +111,26 @@ namespace Game
 
         // TPS camera we use to track the player.
         private Cinemachine.CinemachineFreeLook m_FreeLookCamera;
+        IEnumerator PlayFireworkSounds()
+        {
+            yield return new WaitForSeconds(1);
+            m_AudioSource.PlayOneShot(m_FireworkSound[0]);
+            yield return new WaitForSeconds(m_FireworkSound[0].length);
+            m_AudioSource.PlayOneShot(m_FireworkSound[1]);
+            yield return new WaitForSeconds(m_FireworkSound[1].length);
+            m_AudioSource.PlayOneShot(m_FireworkSound[2]);
+            yield return new WaitForSeconds(m_FireworkSound[2].length);
+            yield break;
+        }
         void Start()
         {
+            m_AudioSource = GameObject.Find("MusicPlayer").GetComponent<AudioSource>();
+            m_FireworkSound = new AudioClip[3];
+            m_FireworkSound[0] = Resources.Load<AudioClip>("Audio/SFX/Firework1");
+            m_FireworkSound[1] = Resources.Load<AudioClip>("Audio/SFX/Firework2");
+            m_FireworkSound[2] = Resources.Load<AudioClip>("Audio/SFX/Firework3");
+            m_SecurityWinSound = Resources.Load<AudioClip>("Audio/SFX/SecurityWin");
+            m_RogueWinSound = Resources.Load<AudioClip>("Audio/SFX/RogueWin");
             m_IndicatorCanvas = GameObject.Find("IndicatorCanvas");
             m_TheLongRoad = GameObject.Find("The_Long_Road");
             m_TreetopKingdom = GameObject.Find("Treetop Kingdom");
@@ -368,11 +391,11 @@ namespace Game
             }
             else if(photonEvent.Code == (byte)EventType.BulldogsWin && PhotonNetwork.IsMasterClient)
             {
-                photonView.RPC("EndGame", RpcTarget.All);
+                photonView.RPC("EndGame", RpcTarget.All, 1);
             }
             else if (photonEvent.Code == (byte)EventType.RunnersWin && PhotonNetwork.IsMasterClient)
             {
-                photonView.RPC("EndGame", RpcTarget.All);
+                photonView.RPC("EndGame", RpcTarget.All, 2);
             }
             else if(photonEvent.Code == (byte)EventType.ReleaseCamera)
             {
@@ -381,6 +404,23 @@ namespace Game
             else if(photonEvent.Code == (byte)EventType.StartedSpectating)
             {
                 photonView.RPC("UpdateSpectatorList", RpcTarget.All);
+            }
+        }
+        [PunRPC]
+        void PlayAnnouncerVoice_RPC(int winner)
+        {
+            StartCoroutine(PlayAnnouncerVoice(winner));
+        }
+        IEnumerator PlayAnnouncerVoice(int winner)
+        {
+            yield return new WaitForSeconds(1.5f);
+            if(winner == 1)
+            {
+                m_AudioSource.PlayOneShot(m_SecurityWinSound);
+            }
+            else
+            {
+                m_AudioSource.PlayOneShot(m_RogueWinSound);
             }
         }
         [PunRPC]
@@ -568,7 +608,12 @@ namespace Game
             m_FreeLookCamera.Follow = player.transform;
         }
         [PunRPC]
-        void EndGame()
+        void PlayerFireworkSound_RPC()
+        {
+            StartCoroutine(PlayFireworkSounds());
+        }
+        [PunRPC]
+        void EndGame(int winnerTeamID)
         {
             StopAllCoroutines();
             m_TimerText.gameObject.SetActive(false);
@@ -590,7 +635,11 @@ namespace Game
 
             s_HasRoundStarted = false;
 
-            if(PhotonNetwork.IsMasterClient)
+            EventManager.Get().ChangeTrack(3); // Fade out music.
+            photonView.RPC("PlayerFireworkSound_RPC", RpcTarget.All);
+            photonView.RPC("PlayAnnouncerVoice_RPC", RpcTarget.All, winnerTeamID);
+
+            if (PhotonNetwork.IsMasterClient)
             {
                 m_Players.Clear();
                 GameObject[] runners = GameObject.FindGameObjectsWithTag("Runner");

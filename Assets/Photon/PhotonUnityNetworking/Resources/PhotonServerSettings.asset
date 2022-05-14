@@ -130,6 +130,8 @@ MonoBehaviour:
   - Disappear_RPC
   - UpdateSpectatorList
   - SwapLevels
+  - PlayerFireworkSound_RPC
+  - PlayAnnouncerVoice_RPC
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

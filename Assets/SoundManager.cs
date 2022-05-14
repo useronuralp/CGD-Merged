@@ -42,10 +42,21 @@ public class SoundManager : MonoBehaviour
     }
     void OnChangeTrack(int trackID)
     {
-        if(trackID == 1)
+        if (trackID == 1)
             StartCoroutine(TransitionToFirstLevel());
-        else
+        else if (trackID == 2)
             StartCoroutine(TransitionToSecondLevel());
+        else if (trackID == 3)
+            StartCoroutine(TransitionToNoMusic());
+    }
+    public IEnumerator TransitionToNoMusic() //This fnc is useful for slowly fading in / out a music track.
+    {
+        StartCoroutine(StartFade(0.5f, 0.0f));
+        yield return new WaitWhile(() => m_IsTransitioning == true);
+        m_AudioSource.clip = null;
+        m_AudioSource.Stop();
+        StartCoroutine(StartFade(1, 0.1f));
+        yield break;
     }
     public IEnumerator TransitionToSecondLevel() //This fnc is useful for slowly fading in / out a music track.
     {
