@@ -4,58 +4,50 @@ using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine.SceneManagement;
-using TMPro;
+/// <summary>
+/// Class that is responsible for all the input.
+/// </summary>
 namespace Game
 {
     public class Controls : MonoBehaviourPunCallbacks, IOnEventCallback
     {
-        private Rigidbody          m_RigidBody;
-        private float              m_MovementSpeed = 4.0f;
-        private float              m_JumpForce = 6.0f;
-        private bool               m_IsInputEnabled;
-        private Vector3            m_MovementDirection;
-        private UnityEngine.Camera m_TpsCamera;
-        private float              m_TurnSpeed = 3000;
-        private bool               m_IsRagdolling = false;
-        private bool               m_IsEmoting = false;
-        private bool               m_IsGettingUp = false;
-        private bool               m_IsSpectating = false;
-        private bool               m_HasGameEnded = false;
-        private GameObject         m_ScorePanel;
-        private bool               m_IsRolling = false;
-        private bool               m_IsTargeting = false;
-        private bool               m_IsStunned = false;
-        private Cinemachine.CinemachineFreeLook m_CinemachineFLComponent;
+        private Rigidbody                       m_RigidBody;
+        private float                           m_MovementSpeed = 4.0f;
+        private float                           m_JumpForce = 6.0f;
+        private bool                            m_IsInputEnabled;
+        private Vector3                         m_MovementDirection;
+        private UnityEngine.Camera              m_TpsCamera;
+        private float                           m_TurnSpeed = 3000;
+        private bool                            m_IsRagdolling = false;
+        private bool                            m_IsEmoting = false;
+        private bool                            m_IsGettingUp = false;
+        private bool                            m_IsSpectating = false;
+        private bool                            m_HasGameEnded = false;
+        private GameObject                      m_ScorePanel;
+        private bool                            m_IsRolling = false;
+        private bool                            m_IsTargeting = false; // Is the player currently holding down 'RMB' and aiming.
+        private bool                            m_IsStunned = false;
+        private Cinemachine.CinemachineFreeLook m_CinemachineFLComponent; 
+        private int                             m_JumpCount = 0; // Consecutive jump count.
+        private Stamina                         m_StaminaScript; // A reference to the "Stamina.cs" file that is located in the same game object as this one.
+        private bool                            DoOnce = false; // These DoOnce variables are used to call a code path only ONCE in the update loop.
+        private bool                            DoOnce2 = true; // These DoOnce variables are used to call a code path only ONCE in the update loop.
+        private bool                            DoOnce3 = true; // These DoOnce variables are used to call a code path only ONCE in the update loop.
+        private bool                            m_HasDoubleJump = false;
+        private bool                            m_HasWaterBaloon = false;
+        private GameObject                      m_Reticle; // A reference to the reticle in the middle of the screen.
+        private AudioSource                     m_AudioSource;
+        private Dictionary<string, AudioClip>   m_EmoteSounds;
+        private float                           m_DashTime = 0.3f; // The duration for which the characters can dash.
+        private float                           m_RollTime = 0.5f; // The duration for which the characters can roll.
+        private float                           m_DashSpeed = 7.0f;
+        private float                           m_FallMultiplier = 3.0f; // Gravity force is multiplied with this value to have a sharper falling curve. It basically enhances gravity force.
+        private bool                            m_IsDashing = false;
+        private float                           m_DistToGround; // The distance from the feet of the character to the ground.
+        private string[]                        m_GestureNames = { "Whatever_Gesture", "Loser", "Taunt", "Pointing_Gesture", "Laughing" };
+        private Animator                        m_Animator;
 
-
-
-        private int                m_JumpCount = 0;
-
-        private Stamina            m_StaminaScript;
-
-        private bool               DoOnce = false;
-        private bool               DoOnce2 = true;
-        private bool               DoOnce3 = true;
-
-        private bool               m_HasDoubleJump = false;
-
-        private bool               m_HasWaterBaloon = false;
-
-        private GameObject         m_Reticle;
-        private AudioSource        m_AudioSource;
-        private Dictionary<string, AudioClip> m_EmoteSounds;
-        private float m_DashTime = 0.3f;
-        private float m_RollTime = 0.5f;
-        private float m_DashSpeed = 7.0f;
-
-        private float m_FallMultiplier = 3.0f;
-        private float m_BabyJumpMultiplier = 2.0f;
-        private bool m_IsDashing = false;
-        private float m_DistToGround;
-        private string[] m_GestureNames = { "Whatever_Gesture", "Loser", "Taunt", "Pointing_Gesture", "Laughing" };
-
-        private Animator m_Animator;
-
+        // The class needs unsubscribe from all the events before it gets destroyed otherwise we get null reference errors.
         private void OnDestroy()
         {
             EventManager.Get().OnEnableInput -= OnEnableInput;
@@ -96,6 +88,7 @@ namespace Game
             m_AudioSource = GetComponent<AudioSource>();
             m_StaminaScript = GetComponent<Stamina>();
             m_ScorePanel = GameObject.Find("UI").transform.Find("Canvas").Find("ScorePanel").gameObject;
+            // Event subscriptions------------------------------------------------------------------------------
             EventManager.Get().OnEnableInput += OnEnableInput;
             EventManager.Get().OnDisableInput += OnDisableInput;
             EventManager.Get().OnRagdolling += OnRagdolling;
@@ -138,7 +131,7 @@ namespace Game
                     m_IsEmoting = false;
                 }
             }
-
+            // Process inputs here--------------------------------------------------------------------------------------------------------------------------
             if (m_IsInputEnabled && !m_HasGameEnded && !m_IsStunned)
             {
                 if (Input.GetKeyDown(KeyCode.Space) && (IsGrounded() || m_HasDoubleJump))
@@ -224,7 +217,9 @@ namespace Game
             {
                 EventManager.Get().ToggleCursor();
             }
-           
+            // Input processing done ------------------------------------------------------------------------------------------------------
+
+
             if (m_RigidBody.velocity.y < 0)
             {
                 m_RigidBody.velocity += (m_FallMultiplier - 1) * Physics.gravity.y * Time.deltaTime * Vector3.up;
@@ -232,6 +227,7 @@ namespace Game
 
             bool result = IsGrounded();
             m_Animator.SetBool("isGrounded", result);
+
             if(IsGrounded())
             {
                 if(DoOnce3)
@@ -261,82 +257,6 @@ namespace Game
                 m_Animator.SetFloat("Blend", 0.135f);
             else
                 m_Animator.SetFloat("Blend", 0);
-        }
-        void ActivateTargeting()
-        {
-            m_CinemachineFLComponent.m_Orbits[0].m_Height = 3;
-            m_CinemachineFLComponent.m_Orbits[0].m_Radius = 2;
-            m_CinemachineFLComponent.m_Orbits[1].m_Height = 2;
-            m_CinemachineFLComponent.m_Orbits[1].m_Radius = 2;
-            m_CinemachineFLComponent.m_Orbits[2].m_Height = 0.5f;
-            m_CinemachineFLComponent.m_Orbits[2].m_Radius = 2;
-            m_CinemachineFLComponent.m_XAxis.m_MaxSpeed = 200;
-            m_CinemachineFLComponent.m_YAxis.m_MaxSpeed = 3;
-            if (DoOnce2)
-            {
-                if(photonView.IsMine)
-                    EventManager.Get().MakeHatTransparent();
-                DoOnce2 = false;
-                m_CinemachineFLComponent.m_YAxis.Value = 0.35f;
-                transform.Find("NameCanvas").Find("PlayerName").gameObject.SetActive(false);
-            }
-            m_MovementSpeed = 2.0f;
-            m_Reticle.SetActive(true);
-            m_IsTargeting = true;
-        }
-        void DeactivateTargeting()
-        {
-            DoOnce2 = true;
-            if(photonView.IsMine)
-                EventManager.Get().MakeHatOpaque();
-            m_CinemachineFLComponent.m_Orbits[0].m_Height = 8;
-            m_CinemachineFLComponent.m_Orbits[0].m_Radius = 4;
-            m_CinemachineFLComponent.m_Orbits[1].m_Height = 5;
-            m_CinemachineFLComponent.m_Orbits[1].m_Radius = 6;
-            m_CinemachineFLComponent.m_Orbits[2].m_Height = 0.1f;
-            m_CinemachineFLComponent.m_Orbits[2].m_Radius = 3;
-            m_CinemachineFLComponent.m_XAxis.m_MaxSpeed = 500;
-            m_CinemachineFLComponent.m_YAxis.m_MaxSpeed = 6;
-            m_MovementSpeed = 4.0f;
-            m_Reticle.SetActive(false);
-            m_IsTargeting = false;
-            transform.Find("NameCanvas").Find("PlayerName").gameObject.SetActive(true);
-        }
-        public bool IsGrounded()
-        {
-            Vector3 center = new Vector3(transform.position.x, transform.position.y + m_DistToGround, transform.position.z);
-            Vector3 XPlus = new Vector3(transform.position.x + 0.2f, transform.position.y + m_DistToGround, transform.position.z);
-            Vector3 XMinus = new Vector3(transform.position.x - 0.2f, transform.position.y + m_DistToGround, transform.position.z); 
-            Vector3 ZPlus = new Vector3(transform.position.x, transform.position.y + m_DistToGround, transform.position.z + 0.2f);
-            Vector3 ZMinus = new Vector3(transform.position.x, transform.position.y + m_DistToGround, transform.position.z - 0.2f);
-
-
-            LayerMask mask = ~(LayerMask.GetMask("Ragdoll") | LayerMask.GetMask("Ignore Raycast") | LayerMask.GetMask("HitBox"));
-
-            // Last parameter here is not what I though it was. But it is working flawlessly even though I made a mistake while setting this up.
-            Debug.DrawRay(center, -Vector3.up, Color.yellow, m_DistToGround + 0.3f);
-            Debug.DrawRay(XPlus, -Vector3.up, Color.yellow, m_DistToGround + 0.3f);
-            Debug.DrawRay(XMinus, -Vector3.up, Color.yellow, m_DistToGround + 0.3f);
-            Debug.DrawRay(ZPlus, -Vector3.up, Color.yellow, m_DistToGround + 0.3f);
-            Debug.DrawRay(ZMinus, -Vector3.up, Color.yellow, m_DistToGround + 0.3f);
-            return Physics.Raycast(center, -Vector3.up, m_DistToGround + 0.3f, mask) |
-                Physics.Raycast(XPlus, -Vector3.up, m_DistToGround + 0.3f, mask) |
-                Physics.Raycast(XMinus, -Vector3.up, m_DistToGround + 0.3f, mask) |
-                Physics.Raycast(ZPlus, -Vector3.up, m_DistToGround + 0.3f, mask) |
-                Physics.Raycast(ZMinus, -Vector3.up, m_DistToGround + 0.3f, mask);
-        }
-        public float DistanceToGround()
-        {
-            Ray ray = new Ray(new Vector3(transform.position.x, transform.position.y + m_DistToGround, transform.position.z), -Vector3.up);
-            Physics.Raycast(ray, out RaycastHit hitInfo);
-            return hitInfo.distance;
-        }
-        [PunRPC]
-        public void PlayGesture(string gestureName)
-        {
-            m_IsEmoting = true;
-            m_Animator.SetTrigger(gestureName);
-            m_AudioSource.PlayOneShot(m_EmoteSounds[gestureName]);
         }
         private void FixedUpdate()
         {
@@ -379,11 +299,102 @@ namespace Game
                 m_RigidBody.MovePosition(transform.position + m_DashSpeed * 1.7f * transform.forward * Time.deltaTime);
             }
         }
+
+        #region Methods
+        void ActivateTargeting()
+        {
+            m_CinemachineFLComponent.m_Orbits[0].m_Height = 3;
+            m_CinemachineFLComponent.m_Orbits[0].m_Radius = 2;
+            m_CinemachineFLComponent.m_Orbits[1].m_Height = 2;
+            m_CinemachineFLComponent.m_Orbits[1].m_Radius = 2;
+            m_CinemachineFLComponent.m_Orbits[2].m_Height = 0.5f;
+            m_CinemachineFLComponent.m_Orbits[2].m_Radius = 2;
+            m_CinemachineFLComponent.m_XAxis.m_MaxSpeed = 200;
+            m_CinemachineFLComponent.m_YAxis.m_MaxSpeed = 3;
+            if (DoOnce2)
+            {
+                if(photonView.IsMine)
+                    EventManager.Get().MakeHatTransparent();
+                DoOnce2 = false;
+                m_CinemachineFLComponent.m_YAxis.Value = 0.35f;
+                transform.Find("NameCanvas").Find("PlayerName").gameObject.SetActive(false);
+            }
+            m_MovementSpeed = 2.0f;
+            m_Reticle.SetActive(true);
+            m_IsTargeting = true;
+        }
+        void DeactivateTargeting()
+        {
+            DoOnce2 = true;
+            if(photonView.IsMine)
+                EventManager.Get().MakeHatOpaque();
+            m_CinemachineFLComponent.m_Orbits[0].m_Height = 8;
+            m_CinemachineFLComponent.m_Orbits[0].m_Radius = 4;
+            m_CinemachineFLComponent.m_Orbits[1].m_Height = 5;
+            m_CinemachineFLComponent.m_Orbits[1].m_Radius = 6;
+            m_CinemachineFLComponent.m_Orbits[2].m_Height = 0.1f;
+            m_CinemachineFLComponent.m_Orbits[2].m_Radius = 3;
+            m_CinemachineFLComponent.m_XAxis.m_MaxSpeed = 500;
+            m_CinemachineFLComponent.m_YAxis.m_MaxSpeed = 6;
+            m_MovementSpeed = 4.0f;
+            m_Reticle.SetActive(false);
+            m_IsTargeting = false;
+            transform.Find("NameCanvas").Find("PlayerName").gameObject.SetActive(true);
+        }
+        bool IsEmoting()
+        {
+            foreach(string name in m_GestureNames)
+            {
+                if (m_Animator.GetCurrentAnimatorStateInfo(0).IsName(name) && m_Animator.GetCurrentAnimatorStateInfo(0).normalizedTime < 1.0f)
+                    return true;
+            }
+            return false;
+        }
+        public bool IsGrounded()
+        {
+            Vector3 center = new Vector3(transform.position.x, transform.position.y + m_DistToGround, transform.position.z);
+            Vector3 XPlus = new Vector3(transform.position.x + 0.2f, transform.position.y + m_DistToGround, transform.position.z);
+            Vector3 XMinus = new Vector3(transform.position.x - 0.2f, transform.position.y + m_DistToGround, transform.position.z); 
+            Vector3 ZPlus = new Vector3(transform.position.x, transform.position.y + m_DistToGround, transform.position.z + 0.2f);
+            Vector3 ZMinus = new Vector3(transform.position.x, transform.position.y + m_DistToGround, transform.position.z - 0.2f);
+
+
+            LayerMask mask = ~(LayerMask.GetMask("Ragdoll") | LayerMask.GetMask("Ignore Raycast") | LayerMask.GetMask("HitBox"));
+
+            // Last parameter here is not what I though it was. But it is working flawlessly even though I made a mistake while setting this up.
+            Debug.DrawRay(center, -Vector3.up, Color.yellow, m_DistToGround + 0.3f);
+            Debug.DrawRay(XPlus, -Vector3.up, Color.yellow, m_DistToGround + 0.3f);
+            Debug.DrawRay(XMinus, -Vector3.up, Color.yellow, m_DistToGround + 0.3f);
+            Debug.DrawRay(ZPlus, -Vector3.up, Color.yellow, m_DistToGround + 0.3f);
+            Debug.DrawRay(ZMinus, -Vector3.up, Color.yellow, m_DistToGround + 0.3f);
+            return Physics.Raycast(center, -Vector3.up, m_DistToGround + 0.3f, mask) |
+                Physics.Raycast(XPlus, -Vector3.up, m_DistToGround + 0.3f, mask) |
+                Physics.Raycast(XMinus, -Vector3.up, m_DistToGround + 0.3f, mask) |
+                Physics.Raycast(ZPlus, -Vector3.up, m_DistToGround + 0.3f, mask) |
+                Physics.Raycast(ZMinus, -Vector3.up, m_DistToGround + 0.3f, mask);
+        }
+        void ResetPowerups()
+        {
+            m_JumpCount = 0;
+            EventManager.Get().DeactivateDoubleJump();
+            EventManager.Get().DeactivateWaterballoon();
+            m_HasDoubleJump = false;
+            m_HasWaterBaloon = false;
+        }
         void TurnCharacterTowards(Vector3 direction, float turnSpeed) 
         {
             Quaternion turnDirectionQuaternion = Quaternion.LookRotation(direction, Vector3.up);
             m_RigidBody.MoveRotation(Quaternion.RotateTowards(transform.rotation, turnDirectionQuaternion, turnSpeed * Time.deltaTime));
         }
+        public float DistanceToGround()
+        {
+            Ray ray = new Ray(new Vector3(transform.position.x, transform.position.y + m_DistToGround, transform.position.z), -Vector3.up);
+            Physics.Raycast(ray, out RaycastHit hitInfo);
+            return hitInfo.distance;
+        }
+        #endregion
+
+        #region EventTriggers
         public void OnEvent(ExitGames.Client.Photon.EventData photonEvent)
         {
             if (photonEvent.Code == (byte)EventType.RoundStart)
@@ -394,42 +405,6 @@ namespace Game
             {
                 StopAllCoroutines(); // TODO: Might cause bugs, did not test this.
                 m_IsInputEnabled = false;
-            }
-        }
-        IEnumerator Dive()
-        {
-            float startTime = Time.time;
-            m_IsInputEnabled = false;
-            m_Animator.SetBool("Dive", true);
-            while (Time.time < startTime + m_DashTime)
-            {
-                m_IsDashing = true;
-                yield return null;
-            }
-            m_Animator.SetBool("Dive", false);
-            m_IsDashing = false;
-            if (GameObject.Find("PlayerCamera").GetComponent<Cinemachine.CinemachineFreeLook>().m_XAxis.m_InputAxisName != "" && GameObject.Find("PlayerCamera").GetComponent<Cinemachine.CinemachineFreeLook>().m_YAxis.m_InputAxisName != "")
-            {
-                if (!m_IsRagdolling)
-                    OnEnableInput();
-            }
-        }
-        IEnumerator Roll()
-        {
-            float startTime = Time.time;
-            m_IsInputEnabled = false;
-            m_Animator.SetBool("Roll", true);
-            while (Time.time < startTime + m_RollTime)
-            {
-                m_IsRolling = true;
-                yield return null;
-            }
-            m_Animator.SetBool("Roll", false);
-            m_IsRolling = false;
-            if (GameObject.Find("PlayerCamera").GetComponent<Cinemachine.CinemachineFreeLook>().m_XAxis.m_InputAxisName != "" && GameObject.Find("PlayerCamera").GetComponent<Cinemachine.CinemachineFreeLook>().m_YAxis.m_InputAxisName != "")
-            {
-                if (!m_IsRagdolling)
-                    OnEnableInput();
             }
         }
         private void OnDisableInput(SenderType type)
@@ -465,15 +440,6 @@ namespace Game
         public void OnNotRagdolling()
         {
             m_IsRagdolling = false;
-        }
-        bool IsEmoting()
-        {
-            foreach(string name in m_GestureNames)
-            {
-                if (m_Animator.GetCurrentAnimatorStateInfo(0).IsName(name) && m_Animator.GetCurrentAnimatorStateInfo(0).normalizedTime < 1.0f)
-                    return true;
-            }
-            return false;
         }
         void OnStartedGettingUp()
         {
@@ -511,14 +477,6 @@ namespace Game
                 m_IsInputEnabled = false;
             }
         }
-        void ResetPowerups()
-        {
-            m_JumpCount = 0;
-            EventManager.Get().DeactivateDoubleJump();
-            EventManager.Get().DeactivateWaterballoon();
-            m_HasDoubleJump = false;
-            m_HasWaterBaloon = false;
-        }
         void OnActivateDoubleJump()
         {
             ResetPowerups();
@@ -543,5 +501,55 @@ namespace Game
             if(photonView.IsMine)
                 m_IsStunned = false;
         }
+        #endregion
+
+        #region Coroutines
+        IEnumerator Dive()
+        {
+            float startTime = Time.time;
+            m_IsInputEnabled = false;
+            m_Animator.SetBool("Dive", true);
+            while (Time.time < startTime + m_DashTime)
+            {
+                m_IsDashing = true;
+                yield return null;
+            }
+            m_Animator.SetBool("Dive", false);
+            m_IsDashing = false;
+            if (GameObject.Find("PlayerCamera").GetComponent<Cinemachine.CinemachineFreeLook>().m_XAxis.m_InputAxisName != "" && GameObject.Find("PlayerCamera").GetComponent<Cinemachine.CinemachineFreeLook>().m_YAxis.m_InputAxisName != "")
+            {
+                if (!m_IsRagdolling)
+                    OnEnableInput();
+            }
+        }
+        IEnumerator Roll()
+        {
+            float startTime = Time.time;
+            m_IsInputEnabled = false;
+            m_Animator.SetBool("Roll", true);
+            while (Time.time < startTime + m_RollTime)
+            {
+                m_IsRolling = true;
+                yield return null;
+            }
+            m_Animator.SetBool("Roll", false);
+            m_IsRolling = false;
+            if (GameObject.Find("PlayerCamera").GetComponent<Cinemachine.CinemachineFreeLook>().m_XAxis.m_InputAxisName != "" && GameObject.Find("PlayerCamera").GetComponent<Cinemachine.CinemachineFreeLook>().m_YAxis.m_InputAxisName != "")
+            {
+                if (!m_IsRagdolling)
+                    OnEnableInput();
+            }
+        }
+        #endregion
+
+        #region RPCs
+        [PunRPC]
+        public void PlayGesture(string gestureName)
+        {
+            m_IsEmoting = true;
+            m_Animator.SetTrigger(gestureName);
+            m_AudioSource.PlayOneShot(m_EmoteSounds[gestureName]);
+        }
+        #endregion
     }
 }

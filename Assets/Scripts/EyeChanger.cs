@@ -1,6 +1,8 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+/// <summary>
+/// This class is attached to Jammo in main menu scene. It randomly changes the eye texture.
+/// </summary>
 
 public class EyeChanger : MonoBehaviour
 {

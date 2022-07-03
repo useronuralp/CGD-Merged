@@ -1,8 +1,9 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using System;
 using Photon.Pun;
+/// <summary>
+/// This class is contains all the events that can happen. It is a static class and can be accessed from anywhere.
+/// It is used to decrease coupling and increase modularity of the game.
+/// </summary>
 public class EventManager : MonoBehaviourPunCallbacks
 {
     private static EventManager s_Instance;

@@ -1,9 +1,9 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
-using Photon.Realtime;
 
+/// <summary>
+/// Camera class that is attached to players. The class determines which game object to follow during runtime. It has a very basic functionality.
+/// </summary>
 namespace Game
 {
     public class Camera : MonoBehaviourPunCallbacks

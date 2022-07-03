@@ -1,34 +1,30 @@
-using System;
-using System.Collections;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using Photon.Pun;
 using Photon.Realtime;
 using TMPro;
 using System.Collections.Generic;
-
+/// <summary>
+/// This script manages the third (build index 2) scene of the game.
+/// </summary>
 namespace Game
 {
     public class HubManager : MonoBehaviourPunCallbacks
     {
         [SerializeField]
-        private GameObject      m_PlayerPrefab;
+        private GameObject                        m_PlayerPrefab;
         [SerializeField]
-        private GameObject      m_UI;
-        private TextMeshProUGUI m_PlayerCountText;
-        private GameObject      m_StartGameButton;
+        private GameObject                        m_UI;
+        private TextMeshProUGUI                   m_PlayerCountText;
+        private GameObject                        m_StartGameButton;
         [SerializeField]
-        private int             m_MinimumPlayerCount; //Set it in inspector
-        private float           m_LevelSyncInterval = 2.0f;
-        private bool            m_LeavingRoom = false;
-        private GameObject      m_ScorePanelContent;
-
-        public GameObject       PlayerScorePrefab;
-
+        private int                               m_MinimumPlayerCount; //Set it in inspector
+        private float                             m_LevelSyncInterval = 2.0f;
+        private bool                              m_LeavingRoom = false;
+        private GameObject                        m_ScorePanelContent;
+        public GameObject                         PlayerScorePrefab;
         private List<KeyValuePair<float, string>> m_Players;
-
         // TPS camera we use to track the player.
-        private Cinemachine.CinemachineFreeLook m_FreeLookCamera;
+        private Cinemachine.CinemachineFreeLook   m_FreeLookCamera;
         private void Start()
         {
             m_Players = new List<KeyValuePair<float, string>>();

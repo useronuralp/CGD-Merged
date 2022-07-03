@@ -1,16 +1,13 @@
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using Photon.Realtime;
 using Photon.Pun;
 using TMPro;
 
 public class ChatBox : MonoBehaviourPunCallbacks
 {
-    public int MaxMessages = 25;
+    public int MaxMessages = 25; // Number of maximum messages that can be stored in the chat box. After this value the oldest messages start to get deleted.
 
     private List<TextMeshProUGUI> m_MessageList = new List<TextMeshProUGUI>();
-    public TextMeshProUGUI MessagePrefab;
+    public TextMeshProUGUI MessagePrefab; // The prefab we will be creating and posting on chat whenever someone types someting. 
     public void Send(string message)
     {
         photonView.RPC("SendMessage_RPC", RpcTarget.All, message, PhotonNetwork.NickName, Game.PlayerManager.s_LocalPlayerInstance.GetComponent<Game.PlayerManager>().m_IsBulldog);

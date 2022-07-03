@@ -1,7 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-
+/// <summary>
+/// Floats the attached object up and down in a subtel motion.
+/// </summary>
 public class Float : MonoBehaviour
 {
     private Vector3 m_StartPos;

@@ -1,10 +1,11 @@
 using UnityEngine;
 using Photon.Pun;
+
 public class Forcefield : MonoBehaviourPunCallbacks
 {
-    private GameObject m_Owner;
-    private Collider m_OwnCollider;
-    private float m_Lifetime = 5;
+    private GameObject  m_Owner; // Who creates this object during runtime.
+    private Collider    m_OwnCollider; 
+    private float       m_Lifetime = 5; // The lifetime that the forcefield will stay active for.
     private void Awake()
     {
         m_OwnCollider = GetComponent<Collider>();
@@ -12,9 +13,9 @@ public class Forcefield : MonoBehaviourPunCallbacks
         Collider[] colList = m_Owner.transform.GetComponentsInChildren<Collider>();
         foreach(Collider col in colList)
         {
+            //Ignore collision with self and the owner.
             Physics.IgnoreCollision(col, m_OwnCollider, true);
         }
-        
     }
     void Update()
     {

@@ -1,12 +1,14 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// This script is attached to the cannons that can be found in the main menu. After the m_BeatDropTime passes, the particles are shot.
+/// This class is basically a timer.
+/// </summary>
 public class Confetti : MonoBehaviour
 {
     private bool DoOnce = true;
-    private GameObject m_Sys;
-    private GameObject m_SmokeSys;
+    private GameObject m_Sys; // Confetti particle system.
+    private GameObject m_SmokeSys; // Smoke particle system.
     private float m_BeatDropTime = 9.8f;
     private AudioSource m_AudioSource;
     private AudioClip m_CannonSound;

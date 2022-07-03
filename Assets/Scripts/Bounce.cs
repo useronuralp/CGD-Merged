@@ -1,7 +1,8 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
+/// <summary>
+/// This class is used to send information to whoever collides with the game object that this script is attached to.
+/// </summary>
 public class Bounce : MonoBehaviour
 {
     public float bounceForce = 7.0f;
