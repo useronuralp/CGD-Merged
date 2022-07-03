@@ -15,6 +15,7 @@ namespace Game
         private bool m_MessageUp = false;
         void Awake()
         {
+            Pun2LocalConnector.Setup();
             PhotonNetwork.AutomaticallySyncScene = true;
             PhotonNetwork.SerializationRate = 15;
         }
